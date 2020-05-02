@@ -1,4 +1,4 @@
-Recreational Mathemeatics with Python
+Recreational Mathematics with Python
 
 This repository contains a number of short python samples illustrating topics from the field of recreational mathematics. The source code of each sample fits on a single page.
 
