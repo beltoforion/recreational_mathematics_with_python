@@ -1,6 +1,5 @@
 import pygame
 import numpy as np
-import time
 
 
 class Colors:
@@ -14,8 +13,8 @@ def update(surface, cells, sz):
     cur = cells[0]
     nxt = cells[1]
 
-    for r in range(1, cur.shape[0] - 1):
-        for c in range(1, cur.shape[1] - 1):
+    for r in range(1, cur.shape[1] - 1):
+        for c in range(1, cur.shape[0] - 1):
             num_alive = np.sum(cur[c-1:c+2, r-1:r+2]) - cur[c, r]
 
             if cur[c, r] == 1:
@@ -41,8 +40,16 @@ def update(surface, cells, sz):
 
 def init(dimx, dimy):
     cells = np.zeros((2, dimx, dimy))
-    pattern = np.array([[0, 1, 1], [1, 1, 0], [0, 1, 0]])
-    mid = (int(dimx/2), int(dimy/2))
+    pattern = np.array([[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0],
+                        [1,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [1,1,0,0,0,0,0,0,0,0,1,0,0,0,1,0,1,1,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]);
+    mid = (5,5)
     cells[0][mid[0]:mid[0]+pattern.shape[0], mid[1]:mid[1]+pattern.shape[1]] = pattern
     return cells
 
@@ -63,7 +70,6 @@ def main(dimx, dimy, cellsize):
         surface.fill(Colors.grid)
         update(surface, cells, cellsize)
         pygame.display.update()
-        time.sleep(0.02)
 
 
 if __name__ == "__main__":
