@@ -1,2 +1,3 @@
-# recreational_mathematics_with_python
+#Recreational Mathemeatics with Python
+
 Short python samples of recreational mathematics.
