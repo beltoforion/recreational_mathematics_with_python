@@ -14,6 +14,9 @@
       </list>
     </option>
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
   <component name="ProjectId" id="1YE6NsJkLuzKp1zbiC3YUAPL17r" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -44,6 +47,27 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="chaos_game" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="sierpinsky" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/chaos_game.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -86,27 +110,6 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/game_of_life.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="sierpinski1" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="sierpinsky" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/sierpinski1.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -181,10 +184,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python.game_of_life" />
+        <item itemvalue="Python.chaos_game" />
         <item itemvalue="Python.triangle_fractal" />
         <item itemvalue="Python.fire" />
         <item itemvalue="Python.sierpinsky2 (1)" />
-        <item itemvalue="Python.sierpinski1" />
       </list>
     </recent_temporary>
   </component>
@@ -212,46 +215,46 @@
     </state>
     <state x="687" y="281" key="FileChooserDialogImpl/0.0.1920.1040/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1582495934544" />
     <state x="1112" y="163" width="675" height="716" key="FileChooserDialogImpl/0.0.1920.1040/-1920.0.1920.1040@0.0.1920.1040" timestamp="1583576391459" />
-    <state width="1899" height="179" key="GridCell.Tab.0.bottom" timestamp="1588381801327">
+    <state width="1197" height="225" key="GridCell.Tab.0.bottom" timestamp="1588469250476">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1362" height="327" key="GridCell.Tab.0.bottom/0.0.1920.1040/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1582496428696" />
-    <state width="1899" height="179" key="GridCell.Tab.0.bottom/0.0.1920.1040/-1920.0.1920.1040@0.0.1920.1040" timestamp="1588381801327" />
-    <state width="1899" height="179" key="GridCell.Tab.0.center" timestamp="1588381801326">
+    <state width="1197" height="225" key="GridCell.Tab.0.bottom/0.0.1920.1040/-1920.0.1920.1040@0.0.1920.1040" timestamp="1588469250476" />
+    <state width="1197" height="225" key="GridCell.Tab.0.center" timestamp="1588469250476">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1362" height="327" key="GridCell.Tab.0.center/0.0.1920.1040/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1582496428696" />
-    <state width="1899" height="179" key="GridCell.Tab.0.center/0.0.1920.1040/-1920.0.1920.1040@0.0.1920.1040" timestamp="1588381801326" />
-    <state width="1899" height="179" key="GridCell.Tab.0.left" timestamp="1588381801326">
+    <state width="1197" height="225" key="GridCell.Tab.0.center/0.0.1920.1040/-1920.0.1920.1040@0.0.1920.1040" timestamp="1588469250476" />
+    <state width="1197" height="225" key="GridCell.Tab.0.left" timestamp="1588469250476">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1362" height="327" key="GridCell.Tab.0.left/0.0.1920.1040/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1582496428696" />
-    <state width="1899" height="179" key="GridCell.Tab.0.left/0.0.1920.1040/-1920.0.1920.1040@0.0.1920.1040" timestamp="1588381801326" />
-    <state width="1899" height="179" key="GridCell.Tab.0.right" timestamp="1588381801327">
+    <state width="1197" height="225" key="GridCell.Tab.0.left/0.0.1920.1040/-1920.0.1920.1040@0.0.1920.1040" timestamp="1588469250476" />
+    <state width="1197" height="225" key="GridCell.Tab.0.right" timestamp="1588469250476">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1362" height="327" key="GridCell.Tab.0.right/0.0.1920.1040/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1582496428696" />
-    <state width="1899" height="179" key="GridCell.Tab.0.right/0.0.1920.1040/-1920.0.1920.1040@0.0.1920.1040" timestamp="1588381801327" />
-    <state width="1362" height="420" key="GridCell.Tab.1.bottom" timestamp="1587932895351">
+    <state width="1197" height="225" key="GridCell.Tab.0.right/0.0.1920.1040/-1920.0.1920.1040@0.0.1920.1040" timestamp="1588469250476" />
+    <state width="1899" height="420" key="GridCell.Tab.1.bottom" timestamp="1588468985391">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1362" height="327" key="GridCell.Tab.1.bottom/0.0.1920.1040/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1582496428696" />
-    <state width="1362" height="420" key="GridCell.Tab.1.bottom/0.0.1920.1040/-1920.0.1920.1040@0.0.1920.1040" timestamp="1587932895351" />
-    <state width="1362" height="420" key="GridCell.Tab.1.center" timestamp="1587932895351">
+    <state width="1899" height="420" key="GridCell.Tab.1.bottom/0.0.1920.1040/-1920.0.1920.1040@0.0.1920.1040" timestamp="1588468985391" />
+    <state width="1899" height="420" key="GridCell.Tab.1.center" timestamp="1588468985391">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1362" height="327" key="GridCell.Tab.1.center/0.0.1920.1040/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1582496428696" />
-    <state width="1362" height="420" key="GridCell.Tab.1.center/0.0.1920.1040/-1920.0.1920.1040@0.0.1920.1040" timestamp="1587932895351" />
-    <state width="1362" height="420" key="GridCell.Tab.1.left" timestamp="1587932895351">
+    <state width="1899" height="420" key="GridCell.Tab.1.center/0.0.1920.1040/-1920.0.1920.1040@0.0.1920.1040" timestamp="1588468985391" />
+    <state width="1899" height="420" key="GridCell.Tab.1.left" timestamp="1588468985391">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1362" height="327" key="GridCell.Tab.1.left/0.0.1920.1040/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1582496428696" />
-    <state width="1362" height="420" key="GridCell.Tab.1.left/0.0.1920.1040/-1920.0.1920.1040@0.0.1920.1040" timestamp="1587932895351" />
-    <state width="1362" height="420" key="GridCell.Tab.1.right" timestamp="1587932895351">
+    <state width="1899" height="420" key="GridCell.Tab.1.left/0.0.1920.1040/-1920.0.1920.1040@0.0.1920.1040" timestamp="1588468985391" />
+    <state width="1899" height="420" key="GridCell.Tab.1.right" timestamp="1588468985391">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1362" height="327" key="GridCell.Tab.1.right/0.0.1920.1040/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1582496428696" />
-    <state width="1362" height="420" key="GridCell.Tab.1.right/0.0.1920.1040/-1920.0.1920.1040@0.0.1920.1040" timestamp="1587932895351" />
+    <state width="1899" height="420" key="GridCell.Tab.1.right/0.0.1920.1040/-1920.0.1920.1040@0.0.1920.1040" timestamp="1588468985391" />
     <state x="-1558" y="144" key="SettingsEditor" timestamp="1583576414201">
       <screen x="-1920" y="0" width="1920" height="1040" />
     </state>
@@ -261,11 +264,11 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="968" height="528" key="XDebugger.FullValuePopup/0.0.1920.1040/-1920.0.1920.1040@0.0.1920.1040" timestamp="1587924489032" />
-    <state x="668" y="347" key="com.intellij.ide.util.TipDialog" timestamp="1588429290802">
+    <state x="668" y="347" key="com.intellij.ide.util.TipDialog" timestamp="1588468405783">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="-1252" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1583573601847" />
-    <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/-1920.0.1920.1040@0.0.1920.1040" timestamp="1588429290802" />
+    <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/-1920.0.1920.1040@0.0.1920.1040" timestamp="1588468405783" />
     <state x="920" y="89" width="710" height="819" key="find.popup" timestamp="1587768501338">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -278,6 +281,11 @@
           <url>file://$PROJECT_DIR$/sierpinsky2.py</url>
           <line>1</line>
           <option name="timeStamp" value="25" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/game_of_life.py</url>
+          <line>42</line>
+          <option name="timeStamp" value="27" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

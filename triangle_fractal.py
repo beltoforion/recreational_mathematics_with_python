@@ -64,7 +64,7 @@ def main(width, height):
             subdivide(v, p, q, r, col2)
             print('v = ({}, {}, {}, {})'.format(v[0], v[1], v[2], v[3]))
             pygame.display.update()
-            pygame.image.save(surface, 'triangle_{}{}{}{}.jpg'.format(v[0], v[1], v[2], v[3]))
+            #pygame.image.save(surface, 'triangle_{}{}{}{}.jpg'.format(v[0], v[1], v[2], v[3]))
 
 
 if __name__ == "__main__":

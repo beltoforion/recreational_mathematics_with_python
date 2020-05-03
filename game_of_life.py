@@ -13,23 +13,23 @@ def update(surface, cells, sz):
     cur = cells[0]
     nxt = cells[1]
 
-    for r in range(1, cur.shape[1] - 1):
-        for c in range(1, cur.shape[0] - 1):
-            num_alive = np.sum(cur[c-1:c+2, r-1:r+2]) - cur[c, r]
+    for r in range(1, cur.shape[0] - 1):
+        for c in range(1, cur.shape[1] - 1):
+            num_alive = np.sum(cur[r-1:r+2, c-1:c+2]) - cur[r, c]
 
-            if cur[c, r] == 1:
+            if cur[r, c] == 1:
                 if num_alive < 2 or num_alive > 3:
-                    nxt[c, r] = 0
+                    nxt[r, c] = 0
                     col = Colors.about_to_die
 
                 if 2 <= num_alive <= 3:
-                    nxt[c, r] = 1
+                    nxt[r, c] = 1
                     col = Colors.alive
-            elif cur[c, r] == 0 and num_alive == 3:
-                nxt[c, r] = 1
+            elif cur[r, c] == 0 and num_alive == 3:
+                nxt[r, c] = 1
                 col = Colors.alive
 
-            if cur[c, r] == 1:
+            if cur[r, c] == 1:
                 pygame.draw.rect(surface, col, (c*sz, r*sz, sz-1, sz-1))
             else:
                 pygame.draw.rect(surface, Colors.background, (c*sz, r*sz, sz-1, sz-1))
@@ -39,7 +39,7 @@ def update(surface, cells, sz):
 
 
 def init(dimx, dimy):
-    cells = np.zeros((2, dimx, dimy))
+    cells = np.zeros((2, dimy, dimx))
     pattern = np.array([[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
                         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
                         [0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0],
@@ -49,7 +49,7 @@ def init(dimx, dimy):
                         [0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
                         [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
                         [0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]);
-    mid = (5,5)
+    mid = (3,3)
     cells[0][mid[0]:mid[0]+pattern.shape[0], mid[1]:mid[1]+pattern.shape[1]] = pattern
     return cells
 
@@ -73,4 +73,4 @@ def main(dimx, dimy, cellsize):
 
 
 if __name__ == "__main__":
-    main(70, 70, 8)
+    main(100, 70, 8)
