@@ -2,6 +2,7 @@ import pygame
 import random
 import math
 import colorsys
+import numpy as np
 from pygame.locals import *
 
 idx = [0, 0, 0]
@@ -42,12 +43,10 @@ def init_polygon(width, height, n):
         p.append(((width/2 + r*math.sin(angle),
                    height/2 + r*math.cos(angle)),
                   (int(color[0]*255), int(color[1]*255), int(color[2]*255))))
-
-
     return p
 
 
-def main(width, height, n, r):
+def main(width, height, n, r, ct):
     pygame.init()
     surface = pygame.display.set_mode((width, height))
     pygame.display.set_caption('Das Chaos Spiel')
@@ -55,28 +54,26 @@ def main(width, height, n, r):
     p = init_polygon(width, height, n)
 
     x, y = (400, 300)
-    for step in range(0, width*height*3):
-        point_idx = random_point_index(p)
+    for i in range(0, width*height*3):
+        i = random_point_index(p)
+        x += (p[i][0][0] - x) * r
+        y += (p[i][0][1] - y) * r
 
-        pos = p[point_idx][0]
-        color = p[point_idx][1]
-        x += (pos[0] - x) * r
-        y += (pos[1] - y) * r
-
-        mark_pixel(surface, (int(x), int(y)), color)
-
-        if step % 1000 == 0:
+        mark_pixel(surface, (int(x), int(y)), p[i][1])
+        if i % 1000 == 0:
             pygame.display.update()
 
         for event in pygame.event.get():
             if event.type == QUIT:
-                pygame.image.save(surface, 'chaosspiel.jpg')
                 pygame.quit()
                 return
 
-    pygame.image.save(surface, 'chaosspiel.jpg')
+    pygame.image.save(surface, 'frame_{:03d}.jpg'.format(ct))
     pygame.quit()
 
 
 if __name__ == "__main__":
-    main(500, 500, 5,  0.5)
+    ct = 0
+    for r in np.arange(0.1, 0.9, 0.01):
+        ct = ct + 1
+        main(500, 500, 5, r, ct)

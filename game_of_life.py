@@ -62,4 +62,4 @@ def main(dimx, dimy, cellsize):
 
 
 if __name__ == "__main__":
-    main(120, 90, 8)
+    main(100, 70, 8)
