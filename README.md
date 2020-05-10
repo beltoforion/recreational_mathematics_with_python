@@ -5,6 +5,8 @@ This repository contains a number of short python samples illustrating topics fr
 
 - John Conways Game of Life
 A Python implementation of John Conways cellular automata Game of Life.
+https://beltoforion.de/en/recreational_mathematics/game_of_life.php
 
 - The Chaos Game
 Create fractal patterns with a random iteration algorithm.
+https://beltoforion.de/en/recreational_mathematics/chaos_game.php
