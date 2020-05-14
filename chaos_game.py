@@ -15,6 +15,9 @@ def mark_pixel(surface, pos, pcol):
 
 
 def random_point_index(p):
+    if len(p) <= 3:
+        return random.randint(0, len(p) - 1)
+
     global idx
     idx[2] = idx[1]
     idx[1] = idx[0]
@@ -55,7 +58,9 @@ def main(width, height, n, r):
     p = init_polygon(width, height, n)
 
     x, y = (400, 300)
-    for step in range(0, width*height*3):
+    step = 0
+    while True:
+        step = step + 1
         point_idx = random_point_index(p)
 
         pos = p[point_idx][0]
@@ -74,9 +79,6 @@ def main(width, height, n, r):
                 pygame.quit()
                 return
 
-    pygame.image.save(surface, 'chaosspiel.jpg')
-    pygame.quit()
-
 
 if __name__ == "__main__":
-    main(500, 500, 5,  0.5)
+    n=5; main(2000, 2000, n,  0.45)

@@ -1,7 +1,6 @@
 import pygame
 import random
 import math
-import colorsys
 from pygame.locals import *
 
 idx = [0, 0, 0]
@@ -16,14 +15,18 @@ def mark_pixel(surface, pos, plane):
 
 
 def random_point_index(p):
+    if len(p) <= 3:
+        return random.randint(0, len(p) - 1)
+
     global idx
     idx[2] = idx[1]
     idx[1] = idx[0]
+    dst1 = abs(idx[1] - idx[2])
 
     while True:
         idx[0] = random.randint(0, len(p) - 1)
         dst = abs(idx[0] - idx[1])
-        if dst == 0:
+        if dst1 == 0 and (dst == 1 or dst == len(p) - 1):
             continue
         else:
             break
@@ -38,10 +41,7 @@ def init_polygon(width, height, n):
 
     for i in range(0, n):
         angle = (180 + i*delta_angle) * math.pi / 180
-        color = colorsys.hsv_to_rgb((i*delta_angle)/360, 0.8, 1)
-        p.append(((width/2 + r*math.sin(angle),
-                   height/2 + r*math.cos(angle)),
-                  (int(color[0]*255), int(color[1]*255), int(color[2]*255))))
+        p.append((width/2 + r*math.sin(angle), height/2 + r*math.cos(angle)))
     return p
 
 
@@ -59,12 +59,14 @@ def main(width, height, n, r):
     while True:
         step = step + 1
         i = random_point_index(p)
+
         for plane_idx in (range(0,3)):
             rr = random.random() * plane_randomness[plane_idx]
-            x[plane_idx] += (p[i][0][0] - x[plane_idx]) * (r + rr)
-            y[plane_idx] += (p[i][0][1] - y[plane_idx]) * (r + rr)
+            x[plane_idx] += (p[i][0] - x[plane_idx]) * (r + rr)
+            y[plane_idx] += (p[i][1] - y[plane_idx]) * (r + rr)
 
-            mark_pixel(surface, (int(x[plane_idx]), int(y[plane_idx])), plane_idx)
+            if 0 <= x[plane_idx] <= width and 0 <= y[plane_idx] <= height:
+                mark_pixel(surface, (int(x[plane_idx]), int(y[plane_idx])), plane_idx)
 
         if step % 5000 == 0:
             pygame.display.update()
@@ -77,4 +79,4 @@ def main(width, height, n, r):
 
 
 if __name__ == "__main__":
-    n = 5; main(500, 500, n, 0.5)
+    n = 5; main(2000, 2000, n, 0.45)
