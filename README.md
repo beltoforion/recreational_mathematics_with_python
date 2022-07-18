@@ -6,9 +6,16 @@ This repository contains a number of short python samples illustrating topics fr
 
 John Conways Game of Life
 -------------------------
-A Python implementation of [John Conways cellular automata Game of Life](https://beltoforion.de/en/recreational_mathematics/game_of_life.php).
+A Python implementation of [John Conways Game of Life](https://beltoforion.de/en/recreational_mathematics/game_of_life.php).
 
 The Chaos Game
 --------------
 Create fractal patterns with a random iteration algorithm called [the chaos game](https://beltoforion.de/en/recreational_mathematics/chaos_game.php).
 
+2D Wafe Equation
+----------------
+A finite difference solution to the 2D wave equation. [2D Wave Equation](https://beltoforion.de/de/unterhaltungsmathematik/2d-wellengleichung.php)
+
+The Sierpinsky Triangle
+----------------
+A python implementation for computing fractals with a recursive algortihm. [Sierpinsky Triangle](https://beltoforion.de/en/recreational_mathematics/sierpinsky_triangle.php)
