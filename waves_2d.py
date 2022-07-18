@@ -4,8 +4,8 @@ import random
 
 h = 1        # spatial step width
 k = 1        # time step width
-dimx = 400   # width of the simulation domain
-dimy = 300   # height of the simulation domain
+dimx = int(1920/4)   # width of the simulation domain
+dimy = int(1080/4)   # height of the simulation domain
 cellsize = 2 # display size of a cell in pixel
 
 def init_simulation():
@@ -22,17 +22,24 @@ def update(u, alpha):
     u[1] = u[0]
     u[0] = buf
 
-# Version 1: Easy to understand but terribly slow!
-#    for c in range(1, dimx-1):
-#        for r in range(1, dimy-1):
-#            u[0, c, r]  = alpha[c,r] * (u[1, c-1, r] + u[1, c+1, r] + u[1, c, r-1] + u[1, c, r+1] - 4*u[1, c, r])
-#            u[0, c, r] += 2 * u[1, c, r] - u[2, c, r]
-# Version 2: Much faster by eliminating loops
-    u[0, 1:dimx-1, 1:dimy-1]  = alpha[1:dimx-1, 1:dimy-1] * (u[1, 0:dimx-2, 1:dimy-1] + \
-                                          u[1, 2:dimx,   1:dimy-1] + \
-                                          u[1, 1:dimx-1, 0:dimy-2] + \
-                                          u[1, 1:dimx-1, 2:dimy] - 4*u[1, 1:dimx-1, 1:dimy-1]) \
-                                    + 2 * u[1, 1:dimx-1, 1:dimy-1] - u[2, 1:dimx-1, 1:dimy-1]
+    # This switch is for educational purposes. The fist implementation is approx 50 times slower in python!
+    use_terribly_slow_implementation = False
+    if use_terribly_slow_implementation:
+        # Version 1: Easy to understand but terribly slow!
+        for c in range(1, dimx-1):
+            for r in range(1, dimy-1):
+                u[0, c, r]  = alpha[c,r] * (u[1, c-1, r] + u[1, c+1, r] + u[1, c, r-1] + u[1, c, r+1] - 4*u[1, c, r])
+                u[0, c, r] += 2 * u[1, c, r] - u[2, c, r]
+    else:
+        # Version 2: Much faster by eliminating loops
+        u[0, 1:dimx-1, 1:dimy-1]  = alpha[1:dimx-1, 1:dimy-1] * (u[1, 0:dimx-2, 1:dimy-1] + 
+                                            u[1, 2:dimx,   1:dimy-1] + 
+                                            u[1, 1:dimx-1, 0:dimy-2] + 
+                                            u[1, 1:dimx-1, 2:dimy] - 4*u[1, 1:dimx-1, 1:dimy-1]) \
+                                        + 2 * u[1, 1:dimx-1, 1:dimy-1] - u[2, 1:dimx-1, 1:dimy-1]
+
+    # Not part of the wave equation but I need to remove energy from the system. 
+    # The boundary conditions are closed, so energy cannot leave and the simulation keep adding energy.
     u[0, 1:dimx-1, 1:dimy-1] *= 0.998
 
 def place_raindrops(u):
