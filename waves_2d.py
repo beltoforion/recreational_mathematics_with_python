@@ -4,8 +4,8 @@ import random
 
 h = 1        # spatial step width
 k = 1        # time step width
-dimx = int(1920/4)   # width of the simulation domain
-dimy = int(1080/4)   # height of the simulation domain
+dimx = int(300)   # width of the simulation domain
+dimy = int(300)   # height of the simulation domain
 cellsize = 2 # display size of a cell in pixel
 
 def init_simulation():
@@ -17,10 +17,8 @@ def init_simulation():
     return u, alpha
 
 def update(u, alpha):
-    buf = u[2]
     u[2] = u[1]
     u[1] = u[0]
-    u[0] = buf
 
     # This switch is for educational purposes. The fist implementation is approx 50 times slower in python!
     use_terribly_slow_implementation = False
