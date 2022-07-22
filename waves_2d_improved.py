@@ -2,6 +2,7 @@ import pygame
 import numpy as np
 import random
 import math
+import time
 
 h = 1        # spatial step width
 k = 1        # time step width
@@ -35,7 +36,7 @@ def create_arrays():
 
     # Create a template for a gauss peak to use as a rain drop model
     sz = 10
-    sigma = 2
+    sigma = 1.5
     xx, yy = np.meshgrid(range(-sz, sz), range(-sz, sz))
     gauss_peak = np.zeros((sz, sz))
     gauss_peak = 300 / (sigma*2*math.pi) * (math.sqrt(2*math.pi)) * np.exp(- 0.5 * ((xx**2+yy**2)/(sigma**2)))
@@ -68,8 +69,8 @@ def put_gauss_peak(u, x, y, height):
     h = int(h/2)
     u[0:2, int(x)-w:int(x)+h, int(y)-w:int(y)+h] += height * gauss_peak
 
-def update(u, algo : int):
-    update_field(u, algo)
+def update(u, method : int):
+    update_field(u, method)
     update_boundary(u)
 
 def update_boundary_adjacent(u, sz : int) -> None:
@@ -141,9 +142,9 @@ def update_boundary_adjacent(u, sz : int) -> None:
                                     + 0.25 * u[1, 2:dimx  , dimy-0-sz:dimy]
                                     ) + 2 * u[1, 1:dimx-1,  dimy-1-sz:dimy-1] - u[2, 1:dimx-1, dimy-1-sz:dimy-1]
 
-    # Note:
-    # I don't really see a time difference between computing the entire domain and just the border. It is probably
-    # easier just to use this:
+    # Note: 
+    # Time difference betwen computing the entire domain and just the border is small (~10-20% at 300x300). 
+    # It is probably easier just to use this:
 
     # u[0, 1:dimx-1, 1:dimy-1] = tau[1:dimx-1, 1:dimy-1] \
     #                             * (   0.25 * u[1, 0:dimx-2, 0:dimy-2]
@@ -159,11 +160,11 @@ def update_boundary_adjacent(u, sz : int) -> None:
     #                                 + 0.25 * u[1, 2:dimx  , 2:dimy]
     #                                 ) + 2 * u[1, 1:dimx-1, 1:dimy-1] - u[2, 1:dimx-1, 1:dimy-1]
 
-def update_field(u, algo):
+def update_field(u, method):
     u[2] = u[1]
     u[1] = u[0]
 
-    if algo==0: 
+    if method==0: 
         # This is the second order scheme you will most commonly see. It does not take diagonaly into account. 
         # Some waves may appear a tiny bit edgy.
         u[0, 1:dimx-1, 1:dimy-1] = tau[1:dimx-1, 1:dimy-1] \
@@ -177,7 +178,7 @@ def update_field(u, algo):
                                      ) \
                                 + 2 * u[1, 1:dimx-1, 1:dimy-1] \
                                 -     u[2, 1:dimx-1, 1:dimy-1]
-    elif algo==1: 
+    elif method==1: 
         # This is the second order scheme with a laplacian that takes the diagonals into account.
         # The resulting wave shape will look a bit better under certain conditions but the accuracy 
         # is still low. In most cases you will hardly see a difference to #1
@@ -196,7 +197,7 @@ def update_field(u, algo):
                                      ) \
                                 + 2 * u[1, 1:dimx-1, 1:dimy-1] \
                                 -     u[2, 1:dimx-1, 1:dimy-1]
-    elif algo==2: # ok, (4)th Order https://www.ams.org/journals/mcom/1988-51-184/S0025-5718-1988-0935077-0/S0025-5718-1988-0935077-0.pdf; Page 702
+    elif method==2: # ok, (4)th Order https://www.ams.org/journals/mcom/1988-51-184/S0025-5718-1988-0935077-0/S0025-5718-1988-0935077-0.pdf; Page 702
         # Cells close to the border cannot use high order schemes. Due to their larger stencil. 
         # In those cells a simple second order scheme is used.
         update_boundary_adjacent(u, 2)
@@ -216,7 +217,7 @@ def update_field(u, algo):
                                         ) / 12 \
                                     + 2*u[1, 2:dimx-2, 2:dimy-2] \
                                     -   u[2, 2:dimx-2, 2:dimy-2]         
-    elif algo==3: # ok, (6th) https://www.ams.org/journals/mcom/1988-51-184/S0025-5718-1988-0935077-0/S0025-5718-1988-0935077-0.pdf; Page 702
+    elif method==3: # ok, (6th) https://www.ams.org/journals/mcom/1988-51-184/S0025-5718-1988-0935077-0/S0025-5718-1988-0935077-0.pdf; Page 702
         # Cells close to the border cannot use high order schemes. Due to their larger stencil. 
         # In those cells a simple second order scheme is used.
         update_boundary_adjacent(u, 3)
@@ -240,7 +241,7 @@ def update_field(u, algo):
                                         ) / 180 \
                                     + 2*u[1, 3:dimx-3, 3:dimy-3] \
                                     -   u[2, 3:dimx-3, 3:dimy-3]  
-    elif algo==4: # ok, (8th) https://www.ams.org/journals/mcom/1988-51-184/S0025-5718-1988-0935077-0/S0025-5718-1988-0935077-0.pdf; Page 702
+    elif method==4: # ok, (8th) https://www.ams.org/journals/mcom/1988-51-184/S0025-5718-1988-0935077-0/S0025-5718-1988-0935077-0.pdf; Page 702
         # Cells close to the border cannot use high order schemes. Due to their larger stencil. 
         # In those cells a simple second order scheme is used.
         update_boundary_adjacent(u, 4)
@@ -269,7 +270,7 @@ def update_field(u, algo):
                                     + 2*u[1, 4:dimx-4, 4:dimy-4] \
                                     -   u[2, 4:dimx-4, 4:dimy-4]  
 
-    # Absorbind Boundary Conditions:
+    # Absorbing Boundary Conditions:
     mur = True
     if mur==True:
         update_boundary(u)
@@ -293,7 +294,6 @@ def update_boundary(u) -> None:
     u[0, 1:dimx-1, r] = u[1, 1:dimx-1, r+1] + (kappa[1:dimx-1, r]-1)/(kappa[1:dimx-1, r]+1) * (u[0, 1:dimx-1, r+1] - u[1, 1:dimx-1, r])
 
 def place_raindrops(u, uu, tick):
-    return
     if (random.random()<0.01):
         w,h = gauss_peak.shape
         x = random.randrange(w+w/2, dimx-h-h/2)
@@ -318,6 +318,9 @@ def main():
     pixeldata = np.zeros((3*dimx, dimy, 3), dtype=np.uint8 )
 
     tick = 0
+    fps = 0
+    start_time = time.time()
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -327,8 +330,8 @@ def main():
         tick = tick + 1
         place_raindrops(u, uu, tick)
 
-        update(u, 4)
-        update(uu, 3)        
+        update(u, 1)
+        update(uu, 4)        
 
         pixeldata[1:dimx, 1:dimy, 0] = np.clip(u[0, 1:dimx, 1:dimy] + 128, 0, 255)
         pixeldata[1:dimx, 1:dimy, 1] = np.clip(u[1, 1:dimx, 1:dimy] + 128, 0, 255)
@@ -343,6 +346,15 @@ def main():
 
         text_surface = my_font.render('2D Wave Equation - Explicit Euler (Radiating Boundary Conditions)', True, (255, 255, 255))
         display.blit(text_surface, (5,5))
+
+        current_time = time.time() 
+        if current_time - start_time > 0.5:
+            fps = tick / (current_time - start_time) 
+            start_time = time.time()
+            tick = 0
+
+        text_surface = my_font.render(f'FPS: {fps:.1f}', True, (255, 255, 255))
+        display.blit(text_surface, (5, dimy*cellsize - 20))
 
         pygame.display.update()
 
