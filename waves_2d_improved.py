@@ -36,7 +36,7 @@ def create_arrays():
 
     # Create a template for a gauss peak to use as a rain drop model
     sz = 10
-    sigma = 1.5
+    sigma = 1.3
     xx, yy = np.meshgrid(range(-sz, sz), range(-sz, sz))
     gauss_peak = np.zeros((sz, sz))
     gauss_peak = 300 / (sigma*2*math.pi) * (math.sqrt(2*math.pi)) * np.exp(- 0.5 * ((xx**2+yy**2)/(sigma**2)))
@@ -49,6 +49,9 @@ def set_initial_conditions(u):
     global gauss_peak
 
     velocity[0:dimx,0:dimy] = 0.3
+    velocity[100:150,50:dimy-50] = 0.2      # will be set to a constant value of tau
+    velocity[150:200,50:dimy-50] = 0.1      # will be set to a constant value of tau
+    velocity[200:,0:dimy] = 0.4     # will be set to a constant value of tau
 
     # compute tau and kappa from the velocity field
     tau = ( (velocity*k) / h )**2
@@ -69,102 +72,14 @@ def put_gauss_peak(u, x, y, height):
     h = int(h/2)
     u[0:2, int(x)-w:int(x)+h, int(y)-w:int(y)+h] += height * gauss_peak
 
-def update(u, method : int):
-    update_field(u, method)
-    update_boundary(u)
 
-def update_boundary_adjacent(u, sz : int) -> None:
-    """Compute the wave equation in grid cells adjacent to the boundary. 
-
-        This function will us a simple second order FDM scheme to solve the wave 
-        equation on grid cells that are too close to the boundary to be computed 
-        with a high order scheme.
-
-        Parameters
-        ----------
-        sz : int
-            The width of the boundary adjacent area.
-    """
-    global tau
-    u[0, 1:sz, 1:dimy-1] = tau[1:sz, 1:dimy-1] \
-                                * (   0.25 * u[1, 0:sz-1, 0:dimy-2]
-                                    + 0.5  * u[1, 1:sz,   0:dimy-2]
-                                    + 0.25 * u[1, 2:sz+1, 0:dimy-2]
-
-                                    + 0.5  * u[1, 0:sz-1, 1:dimy-1]
-                                    - 3    * u[1, 1:sz,   1:dimy-1]
-                                    + 0.5  * u[1, 2:sz+1, 1:dimy-1]
-
-                                    + 0.25 * u[1, 0:sz-1, 2:dimy]
-                                    + 0.5  * u[1, 1:sz,   2:dimy]
-                                    + 0.25 * u[1, 2:sz+1, 2:dimy]
-                                    ) + 2 * u[1, 1:sz, 1:dimy-1] - u[2, 1:sz, 1:dimy-1]
-
-    u[0, 1:dimx-1, 1:sz] = tau[1:dimx-1, 1:sz] \
-                                * (   0.25 * u[1, 0:dimx-2, 0:sz-1]
-                                    + 0.5  * u[1, 1:dimx-1, 0:sz-1]
-                                    + 0.25 * u[1, 2:dimx  , 0:sz-1]
-
-                                    + 0.5  * u[1, 0:dimx-2, 1:sz]
-                                    - 3    * u[1, 1:dimx-1, 1:sz]
-                                    + 0.5  * u[1, 2:dimx  , 1:sz]
-
-                                    + 0.25 * u[1, 0:dimx-2, 2:sz+1]
-                                    + 0.5  * u[1, 1:dimx-1, 2:sz+1]
-                                    + 0.25 * u[1, 2:dimx  , 2:sz+1]
-                                    ) + 2 * u[1, 1:dimx-1, 1:sz] - u[2, 1:dimx-1, 1:sz]
-
-    u[0, dimx-1-sz:dimx-1, 1:dimy-1] = tau[dimx-1-sz:dimx-1, 1:dimy-1] \
-                                * (   0.25 * u[1, dimx-2-sz:dimx-2, 0:dimy-2]
-                                    + 0.5  * u[1, dimx-1-sz:dimx-1, 0:dimy-2]
-                                    + 0.25 * u[1, dimx-0-sz:dimx  , 0:dimy-2]
-
-                                    + 0.5  * u[1, dimx-2-sz:dimx-2, 1:dimy-1]
-                                    - 3    * u[1, dimx-1-sz:dimx-1, 1:dimy-1]
-                                    + 0.5  * u[1, dimx-0-sz:dimx  , 1:dimy-1]
-
-                                    + 0.25 * u[1, dimx-2-sz:dimx-2, 2:dimy]
-                                    + 0.5  * u[1, dimx-1-sz:dimx-1, 2:dimy]
-                                    + 0.25 * u[1, dimx-0-sz:dimx  , 2:dimy]
-                                    ) +  2 * u[1, dimx-1-sz:dimx-1, 1:dimy-1] - u[2, dimx-1-sz:dimx-1, 1:dimy-1]
-
-    u[0, 1:dimx-1, dimy-1-sz:dimy-1] = tau[1:dimx-1,  dimy-1-sz:dimy-1] \
-                                * (   0.25 * u[1, 0:dimx-2, dimy-2-sz:dimy-2]
-                                    + 0.5  * u[1, 1:dimx-1, dimy-2-sz:dimy-2]
-                                    + 0.25 * u[1, 2:dimx  , dimy-2-sz:dimy-2]
-
-                                    + 0.5  * u[1, 0:dimx-2, dimy-1-sz:dimy-1]
-                                    - 3    * u[1, 1:dimx-1, dimy-1-sz:dimy-1]
-                                    + 0.5  * u[1, 2:dimx  , dimy-1-sz:dimy-1]
-
-                                    + 0.25 * u[1, 0:dimx-2, dimy-0-sz:dimy]
-                                    + 0.5  * u[1, 1:dimx-1, dimy-0-sz:dimy]
-                                    + 0.25 * u[1, 2:dimx  , dimy-0-sz:dimy]
-                                    ) + 2 * u[1, 1:dimx-1,  dimy-1-sz:dimy-1] - u[2, 1:dimx-1, dimy-1-sz:dimy-1]
-
-    # Note: 
-    # Time difference betwen computing the entire domain and just the border is small (~10-20% at 300x300). 
-    # It is probably easier just to use this:
-
-    # u[0, 1:dimx-1, 1:dimy-1] = tau[1:dimx-1, 1:dimy-1] \
-    #                             * (   0.25 * u[1, 0:dimx-2, 0:dimy-2]
-    #                                 + 0.5  * u[1, 1:dimx-1, 0:dimy-2]
-    #                                 + 0.25 * u[1, 2:dimx  , 0:dimy-2]
-
-    #                                 + 0.5  * u[1, 0:dimx-2, 1:dimy-1]
-    #                                 - 3    * u[1, 1:dimx-1, 1:dimy-1]
-    #                                 + 0.5  * u[1, 2:dimx  , 1:dimy-1]
-
-    #                                 + 0.25 * u[1, 0:dimx-2, 2:dimy]
-    #                                 + 0.5  * u[1, 1:dimx-1, 2:dimy]
-    #                                 + 0.25 * u[1, 2:dimx  , 2:dimy]
-    #                                 ) + 2 * u[1, 1:dimx-1, 1:dimy-1] - u[2, 1:dimx-1, 1:dimy-1]
-
-def update_field(u, method):
+def update(u, method):
     u[2] = u[1]
     u[1] = u[0]
-
+    
     if method==0: 
+        boundary_size = 1
+
         # This is the second order scheme you will most commonly see. It does not take diagonaly into account. 
         # Some waves may appear a tiny bit edgy.
         u[0, 1:dimx-1, 1:dimy-1] = tau[1:dimx-1, 1:dimy-1] \
@@ -179,6 +94,8 @@ def update_field(u, method):
                                 + 2 * u[1, 1:dimx-1, 1:dimy-1] \
                                 -     u[2, 1:dimx-1, 1:dimy-1]
     elif method==1: 
+        boundary_size = 1
+
         # This is the second order scheme with a laplacian that takes the diagonals into account.
         # The resulting wave shape will look a bit better under certain conditions but the accuracy 
         # is still low. In most cases you will hardly see a difference to #1
@@ -200,8 +117,8 @@ def update_field(u, method):
     elif method==2: # ok, (4)th Order https://www.ams.org/journals/mcom/1988-51-184/S0025-5718-1988-0935077-0/S0025-5718-1988-0935077-0.pdf; Page 702
         # Cells close to the border cannot use high order schemes. Due to their larger stencil. 
         # In those cells a simple second order scheme is used.
-        update_boundary_adjacent(u, 2)
-
+#        update_boundary_adjacent(u, 2)
+        boundary_size = 2
         u[0, 2:dimx-2, 2:dimy-2]  = tau[2:dimx-2, 2:dimy-2]\
                                     * ( -  1 * u[1, 2:dimx-2, 0:dimy-4]  # c    , r-2 => -1
                                         + 16 * u[1, 2:dimx-2, 1:dimy-3]  # c    , r-1 => 16                                       
@@ -220,7 +137,8 @@ def update_field(u, method):
     elif method==3: # ok, (6th) https://www.ams.org/journals/mcom/1988-51-184/S0025-5718-1988-0935077-0/S0025-5718-1988-0935077-0.pdf; Page 702
         # Cells close to the border cannot use high order schemes. Due to their larger stencil. 
         # In those cells a simple second order scheme is used.
-        update_boundary_adjacent(u, 3)
+        #update_boundary_adjacent(u, 3)
+        boundary_size = 3
 
         u[0, 3:dimx-3, 3:dimy-3]  = tau[3:dimx-3, 3:dimy-3]\
                                     * (     2 * u[1, 3:dimx-3, 0:dimy-6]  # c,   r-3
@@ -244,7 +162,8 @@ def update_field(u, method):
     elif method==4: # ok, (8th) https://www.ams.org/journals/mcom/1988-51-184/S0025-5718-1988-0935077-0/S0025-5718-1988-0935077-0.pdf; Page 702
         # Cells close to the border cannot use high order schemes. Due to their larger stencil. 
         # In those cells a simple second order scheme is used.
-        update_boundary_adjacent(u, 4)
+#        update_boundary_adjacent(u, 4)
+        boundary_size = 4
 
         u[0, 4:dimx-4, 4:dimy-4]  = tau[4:dimx-4, 4:dimy-4]\
                                     * ( -  1/560 * u[1, 4:dimx-4, 0:dimy-8]  # c,   r-4
@@ -273,25 +192,26 @@ def update_field(u, method):
     # Absorbing Boundary Conditions:
     mur = True
     if mur==True:
-        update_boundary(u)
+        update_boundary(u, boundary_size)
 
-def update_boundary(u) -> None:
+def update_boundary(u, sz) -> None:
     """Update the boundary cells. 
     
         Implement MUR boundary conditions. This represents an open boundary were waves can leave the
         simulation domain with little reflection artifacts.
     """
     c = dimx-1
-    u[0, c, 1:dimy-1] = u[1, c-1, 1:dimy-1] + (kappa[c, 1:dimy-1]-1)/(kappa[c, 1:dimy-1]+1) * (u[0, c-1,1:dimy-1] - u[1,c,1:dimy-1])
+    u[0, dimx-sz-1:c, 1:dimy-1] = u[1,  dimx-sz-2:c-1, 1:dimy-1] + (kappa[ dimx-sz-1:c, 1:dimy-1]-1)/(kappa[ dimx-sz-1:c, 1:dimy-1]+1) * (u[0,  dimx-sz-2:c-1,1:dimy-1] - u[1, dimx-sz-1:c,1:dimy-1])
     
     c = 0
-    u[0, c, 1:dimy-1] = u[1, c+1, 1:dimy-1] + (kappa[c, 1:dimy-1]-1)/(kappa[c, 1:dimy-1]+1) * (u[0, c+1,1:dimy-1] - u[1,c,1:dimy-1])
+    u[0, c:sz, 1:dimy-1] = u[1, c+1:sz+1, 1:dimy-1] + (kappa[c:sz, 1:dimy-1]-1)/(kappa[c:sz, 1:dimy-1]+1) * (u[0, c+1:sz+1,1:dimy-1] - u[1,c:sz,1:dimy-1])
 
     r = dimy-1
-    u[0, 1:dimx-1, r] = u[1, 1:dimx-1, r-1] + (kappa[1:dimx-1, r]-1)/(kappa[1:dimx-1, r]+1) * (u[0, 1:dimx-1, r-1] - u[1, 1:dimx-1, r])
+    u[0, 1:dimx-1, dimy-1-sz:r] = u[1, 1:dimx-1, dimy-2-sz:r-1] + (kappa[1:dimx-1, dimy-1-sz:r]-1)/(kappa[1:dimx-1, dimy-1-sz:r]+1) * (u[0, 1:dimx-1, dimy-2-sz:r-1] - u[1, 1:dimx-1, dimy-1-sz:r])
 
     r = 0
-    u[0, 1:dimx-1, r] = u[1, 1:dimx-1, r+1] + (kappa[1:dimx-1, r]-1)/(kappa[1:dimx-1, r]+1) * (u[0, 1:dimx-1, r+1] - u[1, 1:dimx-1, r])
+    u[0, 1:dimx-1, r:sz] = u[1, 1:dimx-1, r+1:sz+1] + (kappa[1:dimx-1, r:sz]-1)/(kappa[1:dimx-1, r:sz]+1) * (u[0, 1:dimx-1, r+1:sz+1] - u[1, 1:dimx-1, r:sz])
+
 
 def place_raindrops(u, uu, tick):
     if (random.random()<0.01):
@@ -333,13 +253,14 @@ def main():
         update(u, 1)
         update(uu, 4)        
 
-        pixeldata[1:dimx, 1:dimy, 0] = np.clip(u[0, 1:dimx, 1:dimy] + 128, 0, 255)
-        pixeldata[1:dimx, 1:dimy, 1] = np.clip(u[1, 1:dimx, 1:dimy] + 128, 0, 255)
-        pixeldata[1:dimx, 1:dimy, 2] = np.clip(u[2, 1:dimx, 1:dimy] + 128, 0, 255)
+        vfak = 4
+        pixeldata[1:dimx, 1:dimy, 0] = np.clip(u[0, 1:dimx, 1:dimy] + 128 * vfak * velocity[1:dimx, 1:dimy], 0, 255)
+        pixeldata[1:dimx, 1:dimy, 1] = np.clip(u[1, 1:dimx, 1:dimy] + 128 * vfak * velocity[1:dimx, 1:dimy], 0, 255)
+        pixeldata[1:dimx, 1:dimy, 2] = np.clip(u[2, 1:dimx, 1:dimy] + 128 * vfak * velocity[1:dimx, 1:dimy], 0, 255)
 
-        pixeldata[dimx+1:2*dimx, 1:dimy, 0] = np.clip(uu[0, 1:dimx, 1:dimy] + 128, 0, 255)
-        pixeldata[dimx+1:2*dimx, 1:dimy, 1] = np.clip(uu[1, 1:dimx, 1:dimy] + 128, 0, 255) 
-        pixeldata[dimx+1:2*dimx, 1:dimy, 2] = np.clip(uu[2, 1:dimx, 1:dimy] + 128, 0, 255) 
+        pixeldata[dimx+1:2*dimx, 1:dimy, 0] = np.clip(uu[0, 1:dimx, 1:dimy] + 128 * vfak * velocity[1:dimx, 1:dimy], 0, 255)
+        pixeldata[dimx+1:2*dimx, 1:dimy, 1] = np.clip(uu[1, 1:dimx, 1:dimy] + 128 * vfak * velocity[1:dimx, 1:dimy], 0, 255) 
+        pixeldata[dimx+1:2*dimx, 1:dimy, 2] = np.clip(uu[2, 1:dimx, 1:dimy] + 128 * vfak * velocity[1:dimx, 1:dimy], 0, 255) 
 
         surf = pygame.surfarray.make_surface(pixeldata)
         display.blit(pygame.transform.scale(surf, (3*dimx * cellsize, dimy * cellsize)), (0, 0))
