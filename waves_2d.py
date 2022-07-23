@@ -4,8 +4,8 @@ import random
 
 h = 1        # spatial step width
 k = 1        # time step width
-dimx = int(300)   # width of the simulation domain
-dimy = int(300)   # height of the simulation domain
+dimx = 300   # width of the simulation domain
+dimy = 300   # height of the simulation domain
 cellsize = 2 # display size of a cell in pixel
 
 def init_simulation():
