@@ -4,8 +4,8 @@ import random
 import math
 import time
 
-h = 1        # spatial step width
-k = 1        # time step width
+hs = 1   # spatial step width
+ts = 1   # time step width
 dimx = 200   # width of the simulation domain
 dimy = 200   # height of the simulation domain
 cellsize = 3 # display size of a cell in pixel
@@ -35,7 +35,7 @@ def create_arrays():
 
     # Create a template for a gauss peak to use as a rain drop model
     sz = 10
-    sigma = 1.3
+    sigma = 1.5
     xx, yy = np.meshgrid(range(-sz, sz), range(-sz, sz))
     gauss_peak = np.zeros((sz, sz))
     gauss_peak = 300 / (sigma*2*math.pi) * (math.sqrt(2*math.pi)) * np.exp(- 0.5 * ((xx**2+yy**2)/(sigma**2)))
@@ -46,19 +46,19 @@ def set_initial_conditions(u):
     global kappa
     global gauss_peak
 
-    velocity[0:dimx,0:dimy] = 0.3
-    velocity[100:150,50:dimy-50] = 0.2      # will be set to a constant value of tau
+    velocity[0:dimx,0:dimy] = 0.3            # 0.39 m/s Wave velocity of shallow water waves (lambda 0.1, depth 0.1)
+    velocity[110:150,50:dimy-50] = 0.2      # will be set to a constant value of tau
     velocity[150:200,50:dimy-50] = 0.1      # will be set to a constant value of tau
-    velocity[0:dimy, 150:] = 0.4     # will be set to a constant value of tau
+    velocity[0:dimx, 150:] = 0.4     # will be set to a constant value of tau
 
     # compute tau and kappa from the velocity field
-    tau = ( (velocity*k) / h )**2
-    kappa = k * velocity / h  
+    tau = ( (velocity*ts) / hs )**2
+    kappa = ts * velocity / hs  
 
     # Place a single gaussian peak at the center of the simulation
-    put_gauss_peak(u, dimx/2, dimy/2, 10)
+    put_gauss_peak(u, int(dimx/2), int(dimy/2), 10)
 
-def put_gauss_peak(u, x, y, height):
+def put_gauss_peak(u, x : int, y : int, height):
     """Place a gauss shaped peak into the simulation domain.
     
         This function will put a gauss shaped peak at position x,y 
@@ -67,8 +67,19 @@ def put_gauss_peak(u, x, y, height):
     w,h = gauss_peak.shape
     w = int(w/2)
     h = int(h/2)
-    u[0:2, int(x)-w:int(x)+h, int(y)-w:int(y)+h] += height * gauss_peak
 
+    use_multipole = False
+    if use_multipole:
+        # Multipole
+        dist = 3
+        u[0:2, x-w-dist:x+w-dist, y-h:y+h] += height * gauss_peak
+        u[0:2, x-w:x+w, y-h+dist:y+h+dist] -= height * gauss_peak
+        u[0:2, x-w+dist:x+w+dist, y-h:y+h] += height * gauss_peak
+        u[0:2, x-w:x+w, y-h-dist:y+h-dist] -= height * gauss_peak        
+    else:
+        # simple peak
+        u[0:2, x-w:x+w, y-h:y+h] += height * gauss_peak
+            
 def update(u, method):
     u[2] = u[1]
     u[1] = u[0]
@@ -201,8 +212,8 @@ def update_boundary(u, sz) -> None:
 def place_raindrops(u, uu, tick):
     if (random.random()<0.01):
         w,h = gauss_peak.shape
-        x = random.randrange(w+w/2, dimx-h-h/2)
-        y = random.randrange(w+w/2, dimy-h-h/2)
+        x = int(random.randrange(w+w/2, dimx-h-h/2))
+        y = int(random.randrange(w+w/2, dimy-h-h/2))
 
         height = 10
         put_gauss_peak(u, x, y, height)
@@ -223,6 +234,7 @@ def main():
     pixeldata = np.zeros((3*dimx, dimy, 3), dtype=np.uint8 )
 
     tick = 0
+    last_tick = 0
     fps = 0
     start_time = time.time()
 
@@ -233,9 +245,9 @@ def main():
                 return
 
         tick = tick + 1
-        place_raindrops(u, uu, tick)
+        #place_raindrops(u, uu, tick)
 
-        update(u, 1)
+        update(u, 0)
         update(uu, 4)        
 
         vfak = 4
@@ -255,11 +267,11 @@ def main():
 
         current_time = time.time() 
         if current_time - start_time > 0.5:
-            fps = tick / (current_time - start_time) 
+            fps = (tick-last_tick) / (current_time - start_time) 
             start_time = time.time()
-            tick = 0
+            last_tick = tick
 
-        text_surface = my_font.render(f'FPS: {fps:.1f}', True, (255, 255, 255))
+        text_surface = my_font.render(f'FPS: {fps:.1f}; t={tick*ts:.2f} s; area={dimx*hs}x{dimy*hs} m', True, (255, 255, 255))
         display.blit(text_surface, (5, dimy*cellsize - 20))
 
         pygame.display.update()

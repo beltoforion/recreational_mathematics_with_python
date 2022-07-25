@@ -9,11 +9,10 @@ dimy = 300   # height of the simulation domain
 cellsize = 2 # display size of a cell in pixel
 
 def init_simulation():
-    u = np.zeros((3, dimx, dimy))   # The three dimensional simulation grid 
-    c = 0.5                         # The "original" wave propagation speed
-    tau = ( (c*k) / h )**2          # wave propagation speed scaled to the step widths
-    alpha = np.zeros((dimx, dimy))  # wave propagation velocities of the entire simulation domain
-    alpha[0:dimx,0:dimy] = tau      # will be set to a constant value of tau
+    u = np.zeros((3, dimx, dimy))         # The three dimensional simulation grid 
+    c = 0.5                               # The "original" wave propagation speed
+    alpha = np.zeros((dimx, dimy))        # wave propagation velocities of the entire simulation domain
+    alpha[0:dimx,0:dimy] = ((c*k) / h)**2 # will be set to a constant value of tau
     return u, alpha
 
 def update(u, alpha):
@@ -37,8 +36,8 @@ def update(u, alpha):
                                         + 2 * u[1, 1:dimx-1, 1:dimy-1] - u[2, 1:dimx-1, 1:dimy-1]
 
     # Not part of the wave equation but I need to remove energy from the system. 
-    # The boundary conditions are closed, so energy cannot leave and the simulation keep adding energy.
-    u[0, 1:dimx-1, 1:dimy-1] *= 0.998
+    # The boundary conditions are closed. Energy cannot leave and the simulation keeps adding energy.
+    u[0, 1:dimx-1, 1:dimy-1] *= 0.995
 
 def place_raindrops(u):
     if (random.random()<0.02):
@@ -64,8 +63,8 @@ def main():
         update(u, alpha)
 
         pixeldata[1:dimx, 1:dimy, 0] = np.clip(u[0, 1:dimx, 1:dimy] + 128, 0, 255)
-        pixeldata[1:dimx, 1:dimy, 1] = np.clip(u[0, 1:dimx, 1:dimy] + 128, 0, 255)
-        pixeldata[1:dimx, 1:dimy, 2] = np.clip(u[0, 1:dimx, 1:dimy] + 128, 0, 255)
+        pixeldata[1:dimx, 1:dimy, 1] = np.clip(u[1, 1:dimx, 1:dimy] + 128, 0, 255)
+        pixeldata[1:dimx, 1:dimy, 2] = np.clip(u[2, 1:dimx, 1:dimy] + 128, 0, 255)
 
         surf = pygame.surfarray.make_surface(pixeldata)
         display.blit(pygame.transform.scale(surf, (dimx * cellsize, dimy * cellsize)), (0, 0))
