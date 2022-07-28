@@ -1,51 +1,44 @@
 import pygame
 import numpy as np
-import random
 
 h = 1        # spatial step width
 k = 1        # time step width
-c = 0.2
+c = 0.3      # wave velocity
+dimx = dimy = int(300)
+tau = ( (c*k) / h )**2
 kappa = k * c / h  
-alpha = ( (c*k) / h )**2
-dimx = int(300)   # width of the simulation domain
-dimy = int(300)   # height of the simulation domain
-cellsize = 2 # display size of a cell in pixel
+cellsize = 2
 
-def init_simulation():
-    u = np.zeros((3, dimx, dimy))   # The three dimensional simulation grid 
-    u[0:2, 295:299, 0:dimy] = 200
-    return u
+# Place Obstacles
+alpha = np.zeros((dimx, dimy))
+alpha[:] = tau
+alpha[280:285, 0:90] = alpha[280:285, 110:190] = alpha[280:285, 210:dimy] = 0
+alpha[130:140, 200:250] = alpha[60:70, 60:110] = alpha[180:190, 30:80] = 0
 
 def update(u):
     u[2] = u[1]
     u[1] = u[0]
 
     # Solving the Wave Equation
-    u[0, 1:dimx-1, 1:dimy-1]  = alpha * (u[1, 0:dimx-2, 1:dimy-1] + 
-                                         u[1, 2:dimx,   1:dimy-1] + 
-                                         u[1, 1:dimx-1, 0:dimy-2] + 
-                                         u[1, 1:dimx-1, 2:dimy] - 4*u[1, 1:dimx-1, 1:dimy-1]) \
-                                    + 2 * u[1, 1:dimx-1, 1:dimy-1] - u[2, 1:dimx-1, 1:dimy-1]
-    u[0, 1:dimx-1, 1:dimy-1] *= 0.9995                                   
+    u[0, 2:dimx-2, 2:dimy-2]  = alpha[2:dimx-2, 2:dimy-2] * ( -  1 * u[1, 2:dimx-2, 0:dimy-4] + 16 * u[1, 2:dimx-2, 1:dimy-3]
+                                          -  1 * u[1, 0:dimx-4, 2:dimy-2] + 16 * u[1, 1:dimx-3, 2:dimy-2] 
+                                          - 60 * u[1, 2:dimx-2, 2:dimy-2] + 16 * u[1, 3:dimx-1, 2:dimy-2]
+                                          -  1 * u[1, 4:dimx,   2:dimy-2] + 16 * u[1, 2:dimx-2, 3:dimy-1] 
+                                          -  1 * u[1, 2:dimx-2, 4:dimy] ) / 12 \
+                                + 2*u[1, 2:dimx-2, 2:dimy-2] -   u[2, 2:dimx-2, 2:dimy-2]                                     
 
-    # Place Walls
-    u[0:2, 240:250, 10:90] = 0
-    u[0:2, 240:250, 110:190] = 0    
-    u[0:2, 240:250, 210:290] = 0        
-
-#    u[0:2, 80:90, int(dimy/2)-30:int(dimy/2)+30] = 0
-#    u[0:2, 140:210, int(dimy/2)-20] = 0
-#    u[0:2, 140:210, int(dimy/2)+20] = 0
-
-    # Absorbing Boundary Conditions on the left hand side
-    u[0, 0, 1:dimy-1]      = u[1,      1, 1:dimy-1] + (kappa-1)/(kappa+1) * (u[0,      1, 1:dimy-1] - u[1,      1, 1:dimy-1])
+    # Absorbing Boundary Conditions
+    u[0, dimx-3:dimx-1, 1:dimy-1] = u[1,  dimx-4:dimx-2, 1:dimy-1] + (kappa-1)/(kappa+1) * (u[0,  dimx-4:dimx-2, 1:dimy-1] - u[1, dimx-3:dimx-1,1:dimy-1])
+    u[0,           0:2, 1:dimy-1] = u[1,            1:3, 1:dimy-1] + (kappa-1)/(kappa+1) * (u[0,            1:3, 1:dimy-1] - u[1,0:2,1:dimy-1])
+    u[0, 1:dimx-1, dimy-3:dimy-1] = u[1,  1:dimx-1, dimy-4:dimy-2] + (kappa-1)/(kappa+1) * (u[0, 1:dimx-1,  dimy-4:dimy-2] - u[1, 1:dimx-1, dimy-3:dimy-1])
+    u[0, 1:dimx-1, 0:2] = u[1, 1:dimx-1, 1:3] + (kappa-1)/(kappa+1) * (u[0, 1:dimx-1, 1:3] - u[1, 1:dimx-1, 0:2])
 
 def main():
     pygame.init()
     display = pygame.display.set_mode((dimx*cellsize, dimy*cellsize))
     pygame.display.set_caption("Solving the 2d Wave Equation")
 
-    u = init_simulation()
+    u = np.zeros((3, dimx, dimy))
     pixeldata = np.zeros((dimx, dimy, 3), dtype=np.uint8 )
 
     tick = 0
@@ -56,14 +49,12 @@ def main():
                 return
 
         tick += 1
-    
-#        u[0:2, 260, int(150 + np.sin(tick * 0.001) * 100)] = np.sin(tick * 0.1) * 200
-        u[0:2, 295:299, 0:dimy] = np.sin(tick * 0.1) * 20
+        u[0:2, 295:299, 0:dimy] = np.sin(tick * 0.15) * 20
         update(u)
 
-        pixeldata[1:dimx, 1:dimy, 0] = np.clip((u[0, 1:dimx, 1:dimy]>0) * 5 * u[0, 1:dimx, 1:dimy]+u[1, 1:dimx, 1:dimy]+u[2, 1:dimx, 1:dimy], 0, 255)
-        pixeldata[1:dimx, 1:dimy, 1] = 0 
-        pixeldata[1:dimx, 1:dimy, 2] = np.clip((u[0, 1:dimx, 1:dimy]<=0) * -5 * u[0, 1:dimx, 1:dimy] + u[1, 1:dimx, 1:dimy] + u[2, 1:dimx, 1:dimy], 0, 255)
+        pixeldata[1:dimx, 1:dimy, 0] = 255-np.clip((u[0, 1:dimx, 1:dimy]>0) * 10 * u[0, 1:dimx, 1:dimy]+u[1, 1:dimx, 1:dimy]+u[2, 1:dimx, 1:dimy], 0, 255)
+        pixeldata[1:dimx, 1:dimy, 1] = 255-np.clip(np.abs(u[0, 1:dimx, 1:dimy]) * 10, 0, 255)
+        pixeldata[1:dimx, 1:dimy, 2] = 255-np.clip((u[0, 1:dimx, 1:dimy]<=0) * -10 * u[0, 1:dimx, 1:dimy] + u[1, 1:dimx, 1:dimy] + u[2, 1:dimx, 1:dimy], 0, 255) 
 
         surf = pygame.surfarray.make_surface(pixeldata)
         display.blit(pygame.transform.scale(surf, (dimx * cellsize, dimy * cellsize)), (0, 0))
