@@ -13,7 +13,7 @@ The Chaos Game
 --------------
 Create fractal patterns with a random iteration algorithm called [the chaos game](https://beltoforion.de/en/recreational_mathematics/chaos_game.php).
 
-2D Wafe Equation
+2D Wave Equation
 ----------------
 A finite difference solution to the 2D wave equation. [2D Wave Equation](https://beltoforion.de/de/unterhaltungsmathematik/2d-wellengleichung.php)
 
