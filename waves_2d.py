@@ -37,13 +37,13 @@ def update(u, alpha):
 
     # Not part of the wave equation but I need to remove energy from the system. 
     # The boundary conditions are closed. Energy cannot leave and the simulation keeps adding energy.
-    u[0, 1:dimx-1, 1:dimy-1] *= 0.991
+    u[0, 1:dimx-1, 1:dimy-1] *= 0.99
 
 def place_raindrops(u):
     if (random.random()<0.02):
         x = random.randrange(5, dimx-5)
         y = random.randrange(5, dimy-5)
-        u[0, x-2:x+2, y-2:y+2] = 120
+        u[0, x-2:x+2, y-2:y+2] = 100
 
 def main():
     pygame.init()
@@ -62,13 +62,13 @@ def main():
         place_raindrops(u)
         update(u, alpha)
 
-#        pixeldata[1:dimx, 1:dimy, 0] = 255-np.clip((u[0, 1:dimx, 1:dimy]>0) * 10 * u[0, 1:dimx, 1:dimy]+u[1, 1:dimx, 1:dimy]+u[2, 1:dimx, 1:dimy], 0, 255)
-#        pixeldata[1:dimx, 1:dimy, 1] = 255-np.clip(np.abs(u[0, 1:dimx, 1:dimy]) * 10, 0, 255)
-#        pixeldata[1:dimx, 1:dimy, 2] = 255-np.clip((u[0, 1:dimx, 1:dimy]<=0) * -10 * u[0, 1:dimx, 1:dimy] + u[1, 1:dimx, 1:dimy] + u[2, 1:dimx, 1:dimy], 0, 255) 
+        pixeldata[1:dimx, 1:dimy, 0] = 255-np.clip((u[0, 1:dimx, 1:dimy]>0) * 10 * u[0, 1:dimx, 1:dimy]+u[1, 1:dimx, 1:dimy]+u[2, 1:dimx, 1:dimy], 0, 255)
+        pixeldata[1:dimx, 1:dimy, 1] = 255-np.clip(np.abs(u[0, 1:dimx, 1:dimy]) * 10, 0, 255)
+        pixeldata[1:dimx, 1:dimy, 2] = 255-np.clip((u[0, 1:dimx, 1:dimy]<=0) * -10 * u[0, 1:dimx, 1:dimy] + u[1, 1:dimx, 1:dimy] + u[2, 1:dimx, 1:dimy], 0, 255) 
 
-        pixeldata[1:dimx, 1:dimy, 0] = np.clip(u[0, 1:dimx, 1:dimy] + 128, 0, 255)
-        pixeldata[1:dimx, 1:dimy, 1] = np.clip(u[1, 1:dimx, 1:dimy] + 128, 0, 255)
-        pixeldata[1:dimx, 1:dimy, 2] = np.clip(u[2, 1:dimx, 1:dimy] + 128, 0, 255)
+#        pixeldata[1:dimx, 1:dimy, 0] = np.clip(u[0, 1:dimx, 1:dimy] + 128, 0, 255)
+#        pixeldata[1:dimx, 1:dimy, 1] = np.clip(u[1, 1:dimx, 1:dimy] + 128, 0, 255)
+#        pixeldata[1:dimx, 1:dimy, 2] = np.clip(u[2, 1:dimx, 1:dimy] + 128, 0, 255)
 
         surf = pygame.surfarray.make_surface(pixeldata)
         display.blit(pygame.transform.scale(surf, (dimx * cellsize, dimy * cellsize)), (0, 0))

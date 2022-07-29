@@ -52,9 +52,9 @@ def main():
         u[0:2, 295:299, 0:dimy] = np.sin(tick * 0.15) * 20
         update(u)
 
-        pixeldata[1:dimx, 1:dimy, 0] = 255-np.clip((u[0, 1:dimx, 1:dimy]>0) * 10 * u[0, 1:dimx, 1:dimy]+u[1, 1:dimx, 1:dimy]+u[2, 1:dimx, 1:dimy], 0, 255)
-        pixeldata[1:dimx, 1:dimy, 1] = 255-np.clip(np.abs(u[0, 1:dimx, 1:dimy]) * 10, 0, 255)
-        pixeldata[1:dimx, 1:dimy, 2] = 255-np.clip((u[0, 1:dimx, 1:dimy]<=0) * -10 * u[0, 1:dimx, 1:dimy] + u[1, 1:dimx, 1:dimy] + u[2, 1:dimx, 1:dimy], 0, 255) 
+        pixeldata[1:dimx, 1:dimy, 0] = np.clip((u[0, 1:dimx, 1:dimy]>0) * 10 * u[0, 1:dimx, 1:dimy]+u[1, 1:dimx, 1:dimy]+u[2, 1:dimx, 1:dimy], 0, 255)
+        pixeldata[1:dimx, 1:dimy, 2] = 0 #255-np.clip(np.abs(u[0, 1:dimx, 1:dimy]) * 10, 0, 255)
+        pixeldata[1:dimx, 1:dimy, 1] = np.clip((u[0, 1:dimx, 1:dimy]<=0) * -10 * u[0, 1:dimx, 1:dimy] + u[1, 1:dimx, 1:dimy] + u[2, 1:dimx, 1:dimy], 0, 255) 
 
         surf = pygame.surfarray.make_surface(pixeldata)
         display.blit(pygame.transform.scale(surf, (dimx * cellsize, dimy * cellsize)), (0, 0))

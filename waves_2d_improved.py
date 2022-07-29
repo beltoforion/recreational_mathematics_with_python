@@ -196,11 +196,35 @@ def update_boundary(u, sz) -> None:
     u[0, 1:dimx-1, r:sz] = u[1, 1:dimx-1, r+1:sz+1] + (kappa[1:dimx-1, r:sz]-1)/(kappa[1:dimx-1, r:sz]+1) * (u[0, 1:dimx-1, r+1:sz+1] - u[1, 1:dimx-1, r:sz])
 
 
-def place_raindrops(u, tick):
+def put_gauss_peak(u, x : int, y : int, height):
+    """Place a gauss shaped peak into the simulation domain.
+    
+        This function will put a gauss shaped peak at position x,y 
+        of the simulation domain.
+    """
+    w,h = gauss_peak.shape
+    w = int(w/2)
+    h = int(h/2)
+
+    use_multipole = False
+    if use_multipole:
+        # Multipole
+        dist = 3
+        u[0:2, x-w-dist:x+w-dist, y-h:y+h] += height * gauss_peak
+        u[0:2, x-w:x+w, y-h+dist:y+h+dist] -= height * gauss_peak
+        u[0:2, x-w+dist:x+w+dist, y-h:y+h] += height * gauss_peak
+        u[0:2, x-w:x+w, y-h-dist:y+h-dist] -= height * gauss_peak        
+    else:
+        # simple peak
+        u[0:2, x-w:x+w, y-h:y+h] += height * gauss_peak
+
+
+def place_raindrops(u):
     if (random.random()<0.003):
         w,h = gauss_peak.shape
         x = int(random.randrange(w+w/2, dimx-h-h/2))
         y = int(random.randrange(w+w/2, dimy-h-h/2))
+
         height = 2
         put_gauss_peak(u, x, y, height)
 
@@ -261,7 +285,7 @@ def main():
             start_time = time.time()
             last_tick = tick
 
-        #place_raindrops(u, u1, u2, u3, tick)
+        place_raindrops(u)
 
         update(u, 3)
         draw_waves(display, u,  image1data, (0,0))
