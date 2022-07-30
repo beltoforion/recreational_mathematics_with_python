@@ -1,6 +1,9 @@
 **Recreational Mathematics with Python**
 ========================================
-This is the source code repository of the [recreational mathematics page at beltoforion.de](https://beltoforion.de/en/recreational_mathematics)
+This is the source code repository of the recreational mathematics page at beltoforion.de.
+
+* https://beltoforion.de/en/recreational_mathematics (english)
+* https://beltoforion.de/de/unterhaltungsmathematik (german)
 
 This repository contains a number of short python samples illustrating topics from the field of recreational mathematics. The source code of each 
 sample fits on a single page. 
