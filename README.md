@@ -18,11 +18,11 @@ Create fractal patterns with a random iteration algorithm called [the chaos game
 
 2D Wave Equation
 ----------------
-A finite difference solution to the 2D wave equation. [2D Wave Equation](https://beltoforion.de/de/unterhaltungsmathematik/2d-wellengleichung.php) (Article in german)
+A finite difference solution to the 2D wave equation with absorbing boundary conditions and 4th order accuracy of the spacial derivations. [2D Wave Equation](https://beltoforion.de/de/unterhaltungsmathematik/2d-wellengleichung.php) (Article in german)
 
 ![page_waves_2d](https://user-images.githubusercontent.com/2202567/181996061-375c89ff-7553-4593-818e-02a84eec1dfa.jpg)
 
-The Sierpinsky Triangle
+The Sierpinsky Triangles and more
 ----------------
 A python implementation for computing fractals with a recursive algortihm. [Sierpinsky Triangle](https://beltoforion.de/en/recreational_mathematics/sierpinsky_triangle.php)
 
