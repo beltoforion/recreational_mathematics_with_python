@@ -18,7 +18,7 @@ Create fractal patterns with a random iteration algorithm called [the chaos game
 
 2D Wave Equation
 ----------------
-A finite difference solution to the 2D wave equation. [2D Wave Equation](https://beltoforion.de/de/unterhaltungsmathematik/2d-wellengleichung.php)
+A finite difference solution to the 2D wave equation. [2D Wave Equation](https://beltoforion.de/de/unterhaltungsmathematik/2d-wellengleichung.php) (Article in german)
 
 ![page_waves_2d](https://user-images.githubusercontent.com/2202567/181996061-375c89ff-7553-4593-818e-02a84eec1dfa.jpg)
 
