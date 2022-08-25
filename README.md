@@ -37,7 +37,7 @@ A finite difference solution to the 2D wave equation with absorbing boundary con
 
 The Sierpinski Triangles and more
 ----------------
-A python implementation for computing fractals with a recursive algortihm. Sierpinsky Triangle
+A python implementation for computing fractals with a recursive algortihm. 
 
 * https://beltoforion.de/en/recreational_mathematics/sierpinski_triangle.php (english)
 * https://beltoforion.de/de/unterhaltungsmathematik/sierpinski_dreieck.php (german)
