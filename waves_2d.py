@@ -1,74 +1,60 @@
 import pygame
 import numpy as np
-import random
 
 h = 1        # spatial step width
 k = 1        # time step width
-dimx = 300   # width of the simulation domain
-dimy = 300   # height of the simulation domain
-cellsize = 2 # display size of a cell in pixel
+c = 0.3      # wave velocity
+dimx = dimy = int(300)
+tau = ( (c*k) / h )**2
+kappa = k * c / h  
+cellsize = 2
 
-def init_simulation():
-    u = np.zeros((3, dimx, dimy))         # The three dimensional simulation grid 
-    c = 0.5                               # The "original" wave propagation speed
-    alpha = np.zeros((dimx, dimy))        # wave propagation velocities of the entire simulation domain
-    alpha[0:dimx,0:dimy] = ((c*k) / h)**2 # will be set to a constant value of tau
-    return u, alpha
+# Place Obstacles
+alpha = np.zeros((dimx, dimy))
+alpha[:] = tau
+alpha[280:285, 0:90] = alpha[280:285, 110:190] = alpha[280:285, 210:dimy] = 0
+alpha[130:140, 200:250] = alpha[60:70, 60:110] = alpha[180:190, 30:80] = 0
 
-def update(u, alpha):
+def update(u):
     u[2] = u[1]
     u[1] = u[0]
 
-    # This switch is for educational purposes. The fist implementation is approx 50 times slower in python!
-    use_terribly_slow_implementation = False
-    if use_terribly_slow_implementation:
-        # Version 1: Easy to understand but terribly slow!
-        for c in range(1, dimx-1):
-            for r in range(1, dimy-1):
-                u[0, c, r]  = alpha[c,r] * (u[1, c-1, r] + u[1, c+1, r] + u[1, c, r-1] + u[1, c, r+1] - 4*u[1, c, r])
-                u[0, c, r] += 2 * u[1, c, r] - u[2, c, r]
-    else:
-        # Version 2: Much faster by eliminating loops
-        u[0, 1:dimx-1, 1:dimy-1]  = alpha[1:dimx-1, 1:dimy-1] * (u[1, 0:dimx-2, 1:dimy-1] + 
-                                            u[1, 2:dimx,   1:dimy-1] + 
-                                            u[1, 1:dimx-1, 0:dimy-2] + 
-                                            u[1, 1:dimx-1, 2:dimy] - 4*u[1, 1:dimx-1, 1:dimy-1]) \
-                                        + 2 * u[1, 1:dimx-1, 1:dimy-1] - u[2, 1:dimx-1, 1:dimy-1]
+    # Solving the Wave Equation
+    u[0, 2:dimx-2, 2:dimy-2]  = alpha[2:dimx-2, 2:dimy-2] * ( -  1 * u[1, 2:dimx-2, 0:dimy-4] + 16 * u[1, 2:dimx-2, 1:dimy-3]
+                                          -  1 * u[1, 0:dimx-4, 2:dimy-2] + 16 * u[1, 1:dimx-3, 2:dimy-2] 
+                                          - 60 * u[1, 2:dimx-2, 2:dimy-2] + 16 * u[1, 3:dimx-1, 2:dimy-2]
+                                          -  1 * u[1, 4:dimx,   2:dimy-2] + 16 * u[1, 2:dimx-2, 3:dimy-1] 
+                                          -  1 * u[1, 2:dimx-2, 4:dimy] ) / 12 \
+                                + 2*u[1, 2:dimx-2, 2:dimy-2] -   u[2, 2:dimx-2, 2:dimy-2]                                     
 
-    # Not part of the wave equation but I need to remove energy from the system. 
-    # The boundary conditions are closed. Energy cannot leave and the simulation keeps adding energy.
-    u[0, 1:dimx-1, 1:dimy-1] *= 0.99
-
-def place_raindrops(u):
-    if (random.random()<0.02):
-        x = random.randrange(5, dimx-5)
-        y = random.randrange(5, dimy-5)
-        u[0, x-2:x+2, y-2:y+2] = 100
+    # Absorbing Boundary Conditions
+    u[0, dimx-3:dimx-1, 1:dimy-1] = u[1,  dimx-4:dimx-2, 1:dimy-1] + (kappa-1)/(kappa+1) * (u[0,  dimx-4:dimx-2, 1:dimy-1] - u[1, dimx-3:dimx-1,1:dimy-1])
+    u[0,           0:2, 1:dimy-1] = u[1,            1:3, 1:dimy-1] + (kappa-1)/(kappa+1) * (u[0,            1:3, 1:dimy-1] - u[1,0:2,1:dimy-1])
+    u[0, 1:dimx-1, dimy-3:dimy-1] = u[1,  1:dimx-1, dimy-4:dimy-2] + (kappa-1)/(kappa+1) * (u[0, 1:dimx-1,  dimy-4:dimy-2] - u[1, 1:dimx-1, dimy-3:dimy-1])
+    u[0, 1:dimx-1, 0:2] = u[1, 1:dimx-1, 1:3] + (kappa-1)/(kappa+1) * (u[0, 1:dimx-1, 1:3] - u[1, 1:dimx-1, 0:2])
 
 def main():
     pygame.init()
     display = pygame.display.set_mode((dimx*cellsize, dimy*cellsize))
     pygame.display.set_caption("Solving the 2d Wave Equation")
 
-    u, alpha = init_simulation()
+    u = np.zeros((3, dimx, dimy))
     pixeldata = np.zeros((dimx, dimy, 3), dtype=np.uint8 )
 
+    tick = 0
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 return
 
-        place_raindrops(u)
-        update(u, alpha)
+        tick += 1
+        u[0:2, 295:299, 0:dimy] = np.sin(tick * 0.15) * 20
+        update(u)
 
-        pixeldata[1:dimx, 1:dimy, 0] = 255-np.clip((u[0, 1:dimx, 1:dimy]>0) * 10 * u[0, 1:dimx, 1:dimy]+u[1, 1:dimx, 1:dimy]+u[2, 1:dimx, 1:dimy], 0, 255)
-        pixeldata[1:dimx, 1:dimy, 1] = 255-np.clip(np.abs(u[0, 1:dimx, 1:dimy]) * 10, 0, 255)
-        pixeldata[1:dimx, 1:dimy, 2] = 255-np.clip((u[0, 1:dimx, 1:dimy]<=0) * -10 * u[0, 1:dimx, 1:dimy] + u[1, 1:dimx, 1:dimy] + u[2, 1:dimx, 1:dimy], 0, 255) 
-
-#        pixeldata[1:dimx, 1:dimy, 0] = np.clip(u[0, 1:dimx, 1:dimy] + 128, 0, 255)
-#        pixeldata[1:dimx, 1:dimy, 1] = np.clip(u[1, 1:dimx, 1:dimy] + 128, 0, 255)
-#        pixeldata[1:dimx, 1:dimy, 2] = np.clip(u[2, 1:dimx, 1:dimy] + 128, 0, 255)
+        pixeldata[1:dimx, 1:dimy, 0] = np.clip((u[0, 1:dimx, 1:dimy]>0) * 10 * u[0, 1:dimx, 1:dimy]+u[1, 1:dimx, 1:dimy]+u[2, 1:dimx, 1:dimy], 0, 255)
+        pixeldata[1:dimx, 1:dimy, 2] = 0 #255-np.clip(np.abs(u[0, 1:dimx, 1:dimy]) * 10, 0, 255)
+        pixeldata[1:dimx, 1:dimy, 1] = np.clip((u[0, 1:dimx, 1:dimy]<=0) * -10 * u[0, 1:dimx, 1:dimy] + u[1, 1:dimx, 1:dimy] + u[2, 1:dimx, 1:dimy], 0, 255) 
 
         surf = pygame.surfarray.make_surface(pixeldata)
         display.blit(pygame.transform.scale(surf, (dimx * cellsize, dimy * cellsize)), (0, 0))
