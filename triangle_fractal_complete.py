@@ -74,15 +74,6 @@ def main(width, height):
                 pygame.quit()
                 return
 
-    return
-
-
-    while True:
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-                return
-
         v = [0, 0, 0, 0]
         k = [0, 0, 0, 0]
         for i in range(0, 16):
