@@ -79,4 +79,4 @@ def main(width, height, n, r):
 
 
 if __name__ == "__main__":
-    n = 5; main(1000, 1000, n, 0.45)
+    n = 5; main(800, 800, n, 0.45)
