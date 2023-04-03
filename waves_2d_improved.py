@@ -7,9 +7,9 @@ import time
 
 hs = 1   # spatial step width
 ts = 1   # time step width
-dimx = 400   # width of the simulation domain
-dimy = 400   # height of the simulation domain
-cellsize = 2 # display size of a cell in pixel
+dimx = 700   # width of the simulation domain
+dimy = 700   # height of the simulation domain
+cellsize = 1 # display size of a cell in pixel
 
 
 def create_arrays():
@@ -33,7 +33,7 @@ def create_arrays():
 
     # Create a template for a gauss peak to use as a rain drop model
     sz = 10
-    sigma = 1.4
+    sigma = 2.4
     xx, yy = np.meshgrid(range(-sz, sz), range(-sz, sz))
     gauss_peak = np.zeros((sz, sz))
     gauss_peak = 300 / (sigma*2*math.pi) * (math.sqrt(2*math.pi)) * np.exp(- 0.5 * ((xx**2+yy**2)/(sigma**2)))
