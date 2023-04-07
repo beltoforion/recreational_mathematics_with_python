@@ -30,7 +30,7 @@ Create fractal patterns with a random iteration algorithm called the chaos game.
 
 2D Wave Equation
 ----------------
-A finite difference solution to the 2D wave equation with absorbing boundary conditions and 4th order accuracy of the spacial derivations. 
+A finite difference solution to the 2D wave equation with absorbing boundary conditions and up to 8th order accuracy of the spacial derivations. 
 
 * https://beltoforion.de/en/recreational_mathematics/2d-wave-equation.php (english)
 * https://beltoforion.de/de/unterhaltungsmathematik/2d-wellengleichung.php (german)
@@ -49,6 +49,8 @@ A python implementation for computing fractals with a recursive algortihm.
 
 3D Wave Equation
 ----------------
+
+A finite difference solution to the 3D wave equation with absorbing boundary conditions. 
 
 * https://beltoforion.de/en/recreational_mathematics/3d-wave-equation.php (english)
 * https://beltoforion.de/de/unterhaltungsmathematik/3d-wellengleichung.php (german)
