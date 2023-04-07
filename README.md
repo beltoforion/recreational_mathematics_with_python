@@ -8,6 +8,7 @@ This is the source code repository of the recreational mathematics page at belto
 This repository contains a number of short python samples illustrating topics from the field of recreational mathematics. The source code of each 
 sample fits on a single page. 
 
+
 John Conways Game of Life
 -------------------------
 A Python implementation of John Conways Game of Life
@@ -45,3 +46,8 @@ A python implementation for computing fractals with a recursive algortihm.
 
 ![page_dreiecksfraktal](https://user-images.githubusercontent.com/2202567/181996081-c756182a-fc74-4d63-8d68-e259147ecee1.jpg)
 
+
+3D Wave Equation
+----------------
+
+https://user-images.githubusercontent.com/2202567/230522822-1c96265c-c805-4710-ba59-d8fae02b6fdd.mp4
