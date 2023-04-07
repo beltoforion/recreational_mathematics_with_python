@@ -50,4 +50,7 @@ A python implementation for computing fractals with a recursive algortihm.
 3D Wave Equation
 ----------------
 
+* https://beltoforion.de/en/recreational_mathematics/3d-wave-equation.php (english)
+* https://beltoforion.de/de/unterhaltungsmathematik/3d-wellengleichung.php (german)
+
 https://user-images.githubusercontent.com/2202567/230522822-1c96265c-c805-4710-ba59-d8fae02b6fdd.mp4
