@@ -4,16 +4,16 @@ import numpy as np
 h = 1        # spatial step width
 k = 1        # time step width
 c = 0.3      # wave velocity
-dimx = dimy = int(300)
+dimx = dimy = int(600)
 tau = ( (c*k) / h )**2
 kappa = k * c / h  
-cellsize = 2
+cellsize = 1
 
 # Place Obstacles
 alpha = np.zeros((dimx, dimy))
 alpha[:] = tau
-alpha[280:285, 0:90] = alpha[280:285, 110:190] = alpha[280:285, 210:dimy] = 0
-alpha[130:140, 200:250] = alpha[60:70, 60:110] = alpha[180:190, 30:80] = 0
+alpha[560:570, 0:180] = alpha[560:570, 220:380] = alpha[560:570, 410:dimy] = 0
+alpha[260:280, 400:500] = alpha[120:140, 120:220] = alpha[360:380, 60:160] = 0
 
 def update(u):
     u[2] = u[1]
@@ -49,7 +49,7 @@ def main():
                 return
 
         tick += 1
-        u[0:2, 295:299, 0:dimy] = np.sin(tick * 0.15) * 20
+        u[0:2, 590:598, 0:dimy] = np.sin(tick * 0.08) * 20
         update(u)
 
         pixeldata[1:dimx, 1:dimy, 0] = np.clip((u[0, 1:dimx, 1:dimy]>0) * 10 * u[0, 1:dimx, 1:dimy]+u[1, 1:dimx, 1:dimy]+u[2, 1:dimx, 1:dimy], 0, 255)
