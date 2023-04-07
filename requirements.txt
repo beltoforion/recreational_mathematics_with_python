@@ -1,2 +1,3 @@
 numpy>=1.18.5
 pygame
+plotly
