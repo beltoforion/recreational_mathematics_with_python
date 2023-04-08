@@ -166,6 +166,8 @@ def update_loop():
     while True:
         tick += 0.06
 
+        mlab.view(azimuth=4*tick, elevation=40, distance=500, focalpoint=(int(dimx/2), int(dimy/2), int(dimz/2)))
+
         place_raindrops(u)
         put_gauss_peak(u, int(dimx/2), int(dimy/2), 20, 3*math.sin(tick))
         put_gauss_peak(u, int(dimx/2), int(dimy/2), int(dimz-20), 3*math.sin(tick))
@@ -176,7 +178,7 @@ def update_loop():
         absmax = 20 #np.max(np.abs(u[0]))
 
         otf = PiecewiseFunction()
-        for val, opacity in [(absmax, 1), (absmax * 0.2, 0), (-absmax, 1), (-absmax * 0.2, 0)]:
+        for val, opacity in [(absmax, 1), (absmax * 0.3, 0), (-absmax, 1), (-absmax * 0.3, 0)]:
             otf.add_point(val, opacity)
         volume._volume_property.set_scalar_opacity(otf) 
 
