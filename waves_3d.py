@@ -31,13 +31,14 @@ def update(u : any):
     u[2] = u[1]
     u[1] = u[0]
     
+    # the discrete three dimensional wave equation
     u[0, 1:dimx-1, 1:dimy-1, 1:dimz-1] = tau[1:dimx-1, 1:dimy-1, 1:dimz-1] \
         * (   u[1, 0:dimx-2, 1:dimy-1, 1:dimz-1] +     u[1, 1:dimx-1, 0:dimy-2, 1:dimz-1]
             + u[1, 1:dimx-1, 1:dimy-1, 0:dimz-2] - 6 * u[1, 1:dimx-1, 1:dimy-1, 1:dimz-1]
             + u[1, 2:dimx  , 1:dimy-1, 1:dimz-1] +     u[1, 1:dimx-1, 2:dimy,   1:dimz-1]
             + u[1, 1:dimx-1, 1:dimy-1, 2:dimz] ) + 2 * u[1, 1:dimx-1, 1:dimy-1, 1:dimz-1] - u[2, 1:dimx-1, 1:dimy-1, 1:dimz-1]
 
-    # Absorbing boundary conditions
+    # Absorbing boundary conditions for all 6 sides of the simulation domain
     sz = 1
     c = dimx-1
     u[0, dimx-sz-1:c, 1:dimy-1, 1:dimz-1] = u[1,  dimx-sz-2:c-1, 1:dimy-1, 1:dimz-1] + (k[dimx-sz-1:c, 1:dimy-1, 1:dimz-1]-1)/(k[ dimx-sz-1:c, 1:dimy-1, 1:dimz-1]+1) * (u[0,  dimx-sz-2:c-1, 1:dimy-1, 1:dimz-1] - u[1, dimx-sz-1:c,1:dimy-1, 1:dimz-1])
