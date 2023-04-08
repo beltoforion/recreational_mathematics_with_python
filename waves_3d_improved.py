@@ -166,7 +166,7 @@ def update_loop():
     while True:
         tick += 0.06
 
-        mlab.view(azimuth=4*tick, elevation=40, distance=500, focalpoint=(int(dimx/2), int(dimy/2), int(dimz/2)))
+        mlab.view(azimuth=4*tick, elevation=4*tick, distance=500, focalpoint=(int(dimx/2), int(dimy/2), int(dimz/2)))
 
         place_raindrops(u)
         put_gauss_peak(u, int(dimx/2), int(dimy/2), 20, 3*math.sin(tick))
