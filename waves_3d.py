@@ -11,8 +11,7 @@ dimz = 60
 u = np.zeros((3, dimx, dimy, dimz))   # three state arrays of the field variable
 
 # Initial conditions
-velocity = np.zeros((dimx, dimy, dimz))   
-velocity[0:dimx, 0:dimy, 0:dimz] = 0.3 
+velocity = np.full((dimx, dimy, dimz), 0.3)
 velocity[0:dimx, 0:dimy, 4:6] = 0.0
 
 for i in range(dimx):
@@ -20,7 +19,6 @@ for i in range(dimx):
         for k in range(4, 6):
             distance1 = np.linalg.norm(np.array([i, j, k]) - np.array([40, 50, 5]))
             distance2 = np.linalg.norm(np.array([i, j, k]) - np.array([60, 50, 5]))
-            
             if distance1 <= 5 or distance2 <= 5:
                 velocity[i, j, k] = 0.3
 
@@ -39,24 +37,23 @@ def update(u : any):
             + u[1, 1:dimx-1, 1:dimy-1, 2:dimz] ) + 2 * u[1, 1:dimx-1, 1:dimy-1, 1:dimz-1] - u[2, 1:dimx-1, 1:dimy-1, 1:dimz-1]
 
     # Absorbing boundary conditions for all 6 sides of the simulation domain
-    sz = 1
-    c = dimx-1
-    u[0, dimx-sz-1:c, 1:dimy-1, 1:dimz-1] = u[1,  dimx-sz-2:c-1, 1:dimy-1, 1:dimz-1] + (k[dimx-sz-1:c, 1:dimy-1, 1:dimz-1]-1)/(k[ dimx-sz-1:c, 1:dimy-1, 1:dimz-1]+1) * (u[0,  dimx-sz-2:c-1, 1:dimy-1, 1:dimz-1] - u[1, dimx-sz-1:c,1:dimy-1, 1:dimz-1])
+    c = dimx - 1
+    u[0, dimx-2:c, 1:dimy-1, 1:dimz-1] = u[1, dimx-3:c-1, 1:dimy-1, 1:dimz-1] + (k[dimx-2:c, 1:dimy-1, 1:dimz-1]-1)/(k[dimx-2:c, 1:dimy-1, 1:dimz-1]+1) * (u[0, dimx-3:c-1, 1:dimy-1, 1:dimz-1] - u[1, dimx-2:c,1:dimy-1, 1:dimz-1])
 
     c = 0
-    u[0, c:sz, 1:dimy-1, 1:dimz-1] = u[1, c+1:sz+1, 1:dimy-1, 1:dimz-1] + (k[c:sz, 1:dimy-1, 1:dimz-1]-1)/(k[c:sz, 1:dimy-1, 1:dimz-1]+1) * (u[0, c+1:sz+1,1:dimy-1, 1:dimz-1] - u[1,c:sz,1:dimy-1, 1:dimz-1])
+    u[0, c:1, 1:dimy-1, 1:dimz-1] = u[1, 1:2, 1:dimy-1, 1:dimz-1] + (k[c:1, 1:dimy-1, 1:dimz-1]-1)/(k[c:1, 1:dimy-1, 1:dimz-1]+1) * (u[0, 1:2,1:dimy-1, 1:dimz-1] - u[1, c:1,1:dimy-1, 1:dimz-1])
 
     r = dimy-1
-    u[0, 1:dimx-1, dimy-1-sz:r, 1:dimz-1] = u[1, 1:dimx-1, dimy-2-sz:r-1, 1:dimz-1] + (k[1:dimx-1, dimy-1-sz:r, 1:dimz-1]-1)/(k[1:dimx-1, dimy-1-sz:r, 1:dimz-1]+1) * (u[0, 1:dimx-1, dimy-2-sz:r-1, 1:dimz-1] - u[1, 1:dimx-1, dimy-1-sz:r, 1:dimz-1])
+    u[0, 1:dimx-1, dimy-2:r, 1:dimz-1] = u[1, 1:dimx-1, dimy-3:r-1, 1:dimz-1] + (k[1:dimx-1, dimy-2:r, 1:dimz-1]-1)/(k[1:dimx-1, dimy-2:r, 1:dimz-1]+1) * (u[0, 1:dimx-1, dimy-3:r-1, 1:dimz-1] - u[1, 1:dimx-1, dimy-2:r, 1:dimz-1])
 
     r = 0
-    u[0, 1:dimx-1, r:sz, 1:dimz-1] = u[1, 1:dimx-1, r+1:sz+1, 1:dimz-1] + (k[1:dimx-1, r:sz, 1:dimz-1]-1)/(k[1:dimx-1, r:sz, 1:dimz-1]+1) * (u[0, 1:dimx-1, r+1:sz+1, 1:dimz-1] - u[1, 1:dimx-1, r:sz, 1:dimz-1])
+    u[0, 1:dimx-1, r:1, 1:dimz-1] = u[1, 1:dimx-1, 1:2, 1:dimz-1] + (k[1:dimx-1, r:1, 1:dimz-1]-1)/(k[1:dimx-1, r:1, 1:dimz-1]+1) * (u[0, 1:dimx-1, 1:2, 1:dimz-1] - u[1, 1:dimx-1, r:1, 1:dimz-1])
 
     d = dimz-1
-    u[0, 1:dimx-1, 1:dimy-1, dimz-1-sz:d] = u[1, 1:dimx-1, 1:dimy-1, dimz-2-sz:d-1] + (k[1:dimx-1, 1:dimy-1, dimz-1-sz:d]-1)/(k[1:dimx-1, 1:dimy-1, dimz-1-sz:d]+1) * (u[0, 1:dimx-1, 1:dimy-1, dimz-2-sz:d-1] - u[1, 1:dimx-1, 1:dimy-1, dimz-1-sz:d])
+    u[0, 1:dimx-1, 1:dimy-1, dimz-2:d] = u[1, 1:dimx-1, 1:dimy-1, dimz-3:d-1] + (k[1:dimx-1, 1:dimy-1, dimz-2: d]-1)/(k[1:dimx-1, 1:dimy-1, dimz-2:d]+1) * (u[0, 1:dimx-1, 1:dimy-1, dimz-3:d-1] - u[1, 1:dimx-1, 1:dimy-1, dimz-2:d])
 
     d = 0
-    u[0, 1:dimx-1, 1:dimy-1, d:sz] = u[1, 1:dimx-1, 1:dimy-1, d+1:sz+1] + (k[1:dimx-1, 1:dimy-1, d:sz]-1)/(k[1:dimx-1, 1:dimy-1, d:sz]+1) * (u[0, 1:dimx-1, 1:dimy-1, d+1:sz+1] - u[1, 1:dimx-1, 1:dimy-1, d:sz])
+    u[0, 1:dimx-1, 1:dimy-1, d:1] = u[1, 1:dimx-1, 1:dimy-1, d+1:2] + (k[1:dimx-1, 1:dimy-1, d:1]-1)/(k[1:dimx-1, 1:dimy-1, d:1]+1) * (u[0, 1:dimx-1, 1:dimy-1, d+1:2] - u[1, 1:dimx-1, 1:dimy-1, d:1])
 
 @mlab.animate(delay=20)
 def update_loop():
@@ -72,7 +69,7 @@ def update_loop():
         update(u)
 
         src.mlab_source.scalars = u[0]
-        absmax = 1 #np.max(np.abs(u[0]))
+        absmax = 1 
 
         otf = PiecewiseFunction()
         for val, opacity in [(absmax, 1), (absmax * 0.2, 0), (-absmax, 1), (-absmax * 0.2, 0)]:
