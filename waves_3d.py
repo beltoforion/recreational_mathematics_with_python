@@ -37,17 +37,29 @@ def update(u : any):
 
     # Absorbing boundary conditions for all 6 sides of the simulation domain
     c = dimx - 1
-    u[0, dimx-2:c, 1:dimy-1, 1:dimz-1] = u[1, dimx-3:c-1, 1:dimy-1, 1:dimz-1] + (k[dimx-2:c, 1:dimy-1, 1:dimz-1]-1)/(k[dimx-2:c, 1:dimy-1, 1:dimz-1]+1) * (u[0, dimx-3:c-1, 1:dimy-1, 1:dimz-1] - u[1, dimx-2:c,1:dimy-1, 1:dimz-1])
+    u[0, dimx-2:c, 1:dimy-1, 1:dimz-1] = u[1, dimx-3:c-1, 1:dimy-1, 1:dimz-1] \
+        + (k[dimx-2:c, 1:dimy-1, 1:dimz-1]-1)/(k[dimx-2:c, 1:dimy-1, 1:dimz-1]+1) \
+        * (u[0, dimx-3:c-1, 1:dimy-1, 1:dimz-1] - u[1, dimx-2:c,1:dimy-1, 1:dimz-1])
     c = 0
-    u[0, c:1, 1:dimy-1, 1:dimz-1] = u[1, 1:2, 1:dimy-1, 1:dimz-1] + (k[c:1, 1:dimy-1, 1:dimz-1]-1)/(k[c:1, 1:dimy-1, 1:dimz-1]+1) * (u[0, 1:2,1:dimy-1, 1:dimz-1] - u[1, c:1,1:dimy-1, 1:dimz-1])
+    u[0, c:1, 1:dimy-1, 1:dimz-1] = u[1, 1:2, 1:dimy-1, 1:dimz-1] \
+        + (k[c:1, 1:dimy-1, 1:dimz-1]-1)/(k[c:1, 1:dimy-1, 1:dimz-1]+1) \
+        * (u[0, 1:2,1:dimy-1, 1:dimz-1] - u[1, c:1,1:dimy-1, 1:dimz-1])
     r = dimy-1
-    u[0, 1:dimx-1, dimy-2:r, 1:dimz-1] = u[1, 1:dimx-1, dimy-3:r-1, 1:dimz-1] + (k[1:dimx-1, dimy-2:r, 1:dimz-1]-1)/(k[1:dimx-1, dimy-2:r, 1:dimz-1]+1) * (u[0, 1:dimx-1, dimy-3:r-1, 1:dimz-1] - u[1, 1:dimx-1, dimy-2:r, 1:dimz-1])
+    u[0, 1:dimx-1, dimy-2:r, 1:dimz-1] = u[1, 1:dimx-1, dimy-3:r-1, 1:dimz-1] \
+        + (k[1:dimx-1, dimy-2:r, 1:dimz-1]-1)/(k[1:dimx-1, dimy-2:r, 1:dimz-1]+1) \
+        * (u[0, 1:dimx-1, dimy-3:r-1, 1:dimz-1] - u[1, 1:dimx-1, dimy-2:r, 1:dimz-1])
     r = 0
-    u[0, 1:dimx-1, r:1, 1:dimz-1] = u[1, 1:dimx-1, 1:2, 1:dimz-1] + (k[1:dimx-1, r:1, 1:dimz-1]-1)/(k[1:dimx-1, r:1, 1:dimz-1]+1) * (u[0, 1:dimx-1, 1:2, 1:dimz-1] - u[1, 1:dimx-1, r:1, 1:dimz-1])
+    u[0, 1:dimx-1, r:1, 1:dimz-1] = u[1, 1:dimx-1, 1:2, 1:dimz-1] \
+        + (k[1:dimx-1, r:1, 1:dimz-1]-1)/(k[1:dimx-1, r:1, 1:dimz-1]+1) \
+        * (u[0, 1:dimx-1, 1:2, 1:dimz-1] - u[1, 1:dimx-1, r:1, 1:dimz-1])
     d = dimz-1
-    u[0, 1:dimx-1, 1:dimy-1, dimz-2:d] = u[1, 1:dimx-1, 1:dimy-1, dimz-3:d-1] + (k[1:dimx-1, 1:dimy-1, dimz-2: d]-1)/(k[1:dimx-1, 1:dimy-1, dimz-2:d]+1) * (u[0, 1:dimx-1, 1:dimy-1, dimz-3:d-1] - u[1, 1:dimx-1, 1:dimy-1, dimz-2:d])
+    u[0, 1:dimx-1, 1:dimy-1, dimz-2:d] = u[1, 1:dimx-1, 1:dimy-1, dimz-3:d-1] \
+        + (k[1:dimx-1, 1:dimy-1, dimz-2: d]-1)/(k[1:dimx-1, 1:dimy-1, dimz-2:d]+1) \
+        * (u[0, 1:dimx-1, 1:dimy-1, dimz-3:d-1] - u[1, 1:dimx-1, 1:dimy-1, dimz-2:d])
     d = 0
-    u[0, 1:dimx-1, 1:dimy-1, d:1] = u[1, 1:dimx-1, 1:dimy-1, d+1:2] + (k[1:dimx-1, 1:dimy-1, d:1]-1)/(k[1:dimx-1, 1:dimy-1, d:1]+1) * (u[0, 1:dimx-1, 1:dimy-1, d+1:2] - u[1, 1:dimx-1, 1:dimy-1, d:1])
+    u[0, 1:dimx-1, 1:dimy-1, d:1] = u[1, 1:dimx-1, 1:dimy-1, d+1:2] \
+        + (k[1:dimx-1, 1:dimy-1, d:1]-1)/(k[1:dimx-1, 1:dimy-1, d:1]+1) \
+        * (u[0, 1:dimx-1, 1:dimy-1, d+1:2] - u[1, 1:dimx-1, 1:dimy-1, d:1])
 
 @mlab.animate(delay=20)
 def update_loop():
@@ -66,7 +78,7 @@ def update_loop():
         absmax = 1 
 
         otf = PiecewiseFunction()
-        for val, opacity in [(absmax, 1), (absmax * 0.1, 0), (-absmax, 1), (-absmax * 0.1, 0)]:
+        for val, opacity in [(absmax, 1), (absmax * 0.2, 0), (-absmax, 1), (-absmax * 0.2, 0)]:
             otf.add_point(val, opacity)
         volume._volume_property.set_scalar_opacity(otf) 
 
