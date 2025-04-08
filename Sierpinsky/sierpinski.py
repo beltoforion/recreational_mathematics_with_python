@@ -1,5 +1,5 @@
 import pygame
-from pygame.locals import *
+
 
 def subdivide(surface, p1, p2, p3, level):
     if level >= 9:
@@ -20,7 +20,7 @@ def main():
 
     while True:
         for event in pygame.event.get():
-            if event.type == QUIT:
+            if event.type == pygame.QUIT:
                 pygame.quit()
                 return
 

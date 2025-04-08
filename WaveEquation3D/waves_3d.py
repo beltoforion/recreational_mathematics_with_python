@@ -2,7 +2,7 @@ import numpy as np
 import math
 
 from mayavi import mlab
-from tvtk.util.ctf import *
+from tvtk.util.ctf import PiecewiseFunction, ColorTransferFunction
 
 hs = ts = 1        # time and space step width
 dimx = dimy = 100  # dimensions of the simulation domain 
@@ -25,7 +25,7 @@ for i in range(dimx):
 tau = ( (vel*ts) / hs )**2
 k = ts * vel / hs  
 
-def update(u : any):
+def update(u):
     u[2] = u[1]
     u[1] = u[0]
     

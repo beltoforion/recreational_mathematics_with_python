@@ -1,8 +1,8 @@
 import pygame
+import os
 from random import randint
-from pygame.locals import *
 
-surface = None
+out_dir = f'{os.path.dirname(__file__)}/out'
 
 
 class Point:
@@ -11,7 +11,7 @@ class Point:
         self.col = col
 
 
-def subdivide(v, p, q, r, col, level):
+def subdivide(surface, v, p, q, r, col, level):
     if level >= 10:
         pixel_col = (min(col[0], 255), min(col[1], 255), min(col[2], 255))
         pygame.draw.polygon(surface, pixel_col, ((int(p.pos[0]), int(p.pos[1])),
@@ -24,10 +24,10 @@ def subdivide(v, p, q, r, col, level):
     n = Point(((q.pos[0] + r.pos[0]) / 2, (q.pos[1] + r.pos[1]) / 2), col)
     o = Point(((p.pos[0] + r.pos[0]) / 2, (p.pos[1] + r.pos[1]) / 2), col)
 
-    subdivide(v, m, n, o, p.col if v[0] == 0 else col, level + 1)
-    subdivide(v, p, o, m, p.col if v[1] == 0 else col, level + 1)
-    subdivide(v, m, n, q, p.col if v[2] == 0 else col, level + 1)
-    subdivide(v, o, r, n, p.col if v[3] == 0 else col, level + 1)
+    subdivide(surface, v, m, n, o, p.col if v[0] == 0 else col, level + 1)
+    subdivide(surface, v, p, o, m, p.col if v[1] == 0 else col, level + 1)
+    subdivide(surface, v, m, n, q, p.col if v[2] == 0 else col, level + 1)
+    subdivide(surface, v, o, r, n, p.col if v[3] == 0 else col, level + 1)
 
 
 
@@ -48,7 +48,7 @@ def main(width, height):
 
     while True:
         for event in pygame.event.get():
-            if event.type == QUIT:
+            if event.type == pygame.QUIT:
                 pygame.quit()
                 return
 
@@ -58,12 +58,10 @@ def main(width, height):
                 v[j] = int(bool(i & (1 << j)))
 
             surface.fill((255, 255, 255))
-            subdivide(v, p, q, r, col2, 0)
-            print('v = ({}, {}, {}, {})'.format(v[0], v[1], v[2], v[3]))
+            subdivide(surface, v, p, q, r, col2, 0)
+            print(f'v = ({v[0]}, {v[1]}, {v[2]}, {v[3]}')
             pygame.display.update()
-            pygame.image.save(surface, 'triangle_{}{}{}{}.jpg'.format(v[0], v[1], v[2], v[3]))
-
-        return
+            pygame.image.save(surface, f'{out_dir}/triangle_{v[0]}{v[1]}{v[2]}{v[3]}.jpg')
 
 
 if __name__ == "__main__":

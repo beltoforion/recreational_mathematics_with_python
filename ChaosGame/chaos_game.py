@@ -2,7 +2,10 @@ import pygame
 import random
 import math
 import colorsys
-from pygame.locals import *
+import os
+
+out_dir = f'{os.path.dirname(__file__)}'
+
 
 idx = [0, 0, 0]
 
@@ -74,8 +77,8 @@ def main(width, height, n, r):
             pygame.display.update()
 
         for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.image.save(surface, 'chaosspiel.jpg')
+            if event.type == pygame.QUIT:
+                pygame.image.save(surface, f'{out_dir}/chaosspiel.jpg')
                 pygame.quit()
                 return
 

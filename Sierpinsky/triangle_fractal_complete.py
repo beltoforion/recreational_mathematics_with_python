@@ -1,7 +1,9 @@
 import pygame
 import itertools
+import os
 from random import randint
-from pygame.locals import *
+
+out_dir = f'{os.path.dirname(__file__)}/out'
 
 surface = None
 
@@ -66,11 +68,11 @@ def main(width, height):
     subdivide(v, k, p, q, r, col2, 0)
     print('v = ({}, {}, {}, {})'.format(v[0], v[1], v[2], v[3]))
     pygame.display.update()
-    pygame.image.save(surface, './triangle_{}{}{}{}_{}{}{}{}.jpg'.format(v[0], v[1], v[2], v[3], k[0], k[1], k[2], k[3]))
+    pygame.image.save(surface, f'{out_dir}/triangle_{v[0]}{v[1]}{v[2]}{v[3]}_{k[0]}{k[1]}{k[2]}{k[3]}.jpg')
 
     while True:
         for event in pygame.event.get():
-            if event.type == QUIT:
+            if event.type == pygame.QUIT:
                 pygame.quit()
                 return
 
@@ -88,9 +90,9 @@ def main(width, height):
 
                             surface.fill((0, 0, 20))
                             subdivide(v, k, p, q, r, col2, 0)
-                            print('v = ({}, {}, {}, {})'.format(v[0], v[1], v[2], v[3]))
+                            print(f'v = ({v[0]}, {v[1]}, {v[2]}, {v[3]})')
                             pygame.display.update()
-                            pygame.image.save(surface, './out/triangle_{}{}{}{}_{}{}{}{}.jpg'.format(v[0], v[1], v[2], v[3], k[0], k[1], k[2], k[3]))
+                            pygame.image.save(surface, f'{out_dir}/triangle_{v[0]}{v[1]}{v[2]}{v[3]}_{k[0]}{k[1]}{k[2]}{k[3]}.jpg')
 
 
 if __name__ == "__main__":
