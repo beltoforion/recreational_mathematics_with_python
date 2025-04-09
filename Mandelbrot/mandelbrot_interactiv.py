@@ -12,19 +12,33 @@ class OrbitTrap(Enum):
     Lines = 1
     Circle = 2
     LinesAndCircle = 3
+    TrapFunction = 4
 
 
 class OutsideColorScheme(Enum):
     IterationCount = 0
     SmoothIterationCount = 1
-    PointDistance = 2
-    Black = 3
+    SmoothIterationCountPlusTrapFunction = 2
+    TrapFunction = 3
+    PointDistance = 4
+    Black = 5
 
 
 class InsideColorScheme(Enum):
-    PointDistance = 0
-    Black = 1
+    Black = 0
+    PointDistance = 1
+    TrapFunction = 2
 
+
+log = []
+
+EVENT_DOUBLE_CLICK : int  = pygame.USEREVENT + 1
+EVENT_REMOVE_LOG : int = pygame.USEREVENT + 2
+
+show_axis = True
+show_orbits = False
+show_state = False
+show_log = False
 
 def complex_to_screen(z, rmin, rmax, imin, imax, width, height):
     re = z.real
@@ -32,6 +46,11 @@ def complex_to_screen(z, rmin, rmax, imin, imax, width, height):
     x = int((re - rmin) / (rmax - rmin) * width)
     y = int((im - imin) / (imax - imin) * height)
     return x, y
+
+
+@jit
+def trap_function(z, petals=5):
+    return abs(np.sin(petals * np.angle(z)) * np.abs(z))
 
 
 @jit
@@ -52,6 +71,9 @@ def compute_mandelbrot(
 
     mandelbrot_set = np.zeros((dimy, dimx), dtype=np.float64)
 
+    escape_radius = 100
+    petals = 9
+
     for row in range(dimy):
         for col in range(dimx):
             c = (rmin + col * rstep) + 1j * (imin + row * istep)
@@ -59,6 +81,7 @@ def compute_mandelbrot(
 
             escape_radius = 100
             dist = 1e10
+            trap_fun_dist = 1e10     
 
             # Points to check for orbit trap
             points = [complex(0, 0), complex(-1, 0), complex(0, 1), complex(0, -1)]
@@ -75,6 +98,8 @@ def compute_mandelbrot(
 
                 if abs(z) > escape_radius:
                     break
+
+                trap_fun_dist = min(trap_fun_dist, trap_function(z, petals))
 
                 # Compute distance to the closest point
                 if outside_color_scheme == OutsideColorScheme.PointDistance or inside_color_scheme == InsideColorScheme.PointDistance:
@@ -102,7 +127,12 @@ def compute_mandelbrot(
                 if outside_color_scheme == OutsideColorScheme.IterationCount:
                     value = np.log(k)
                 elif outside_color_scheme == OutsideColorScheme.SmoothIterationCount:
-                    value = k + 1 - np.log(np.log(np.abs(z))) / np.log(2)
+                    value  = k + 1 - np.log(np.log(np.abs(z))) / np.log(2)
+                elif outside_color_scheme == OutsideColorScheme.SmoothIterationCountPlusTrapFunction:
+                    value  = k + 1 - np.log(np.log(np.abs(z))) / np.log(2)
+                    value += .5*trap_fun_dist
+                elif outside_color_scheme == OutsideColorScheme.TrapFunction:
+                    value = 40*trap_fun_dist
                 elif outside_color_scheme == OutsideColorScheme.PointDistance:
                     value = dist
                 elif outside_color_scheme == OutsideColorScheme.Black:
@@ -111,7 +141,9 @@ def compute_mandelbrot(
                     raise ValueError("Invalid outside color scheme")
             else:
                 if inside_color_scheme == InsideColorScheme.PointDistance:
-                    value = dist
+                    value  = dist
+                elif inside_color_scheme == InsideColorScheme.TrapFunction:
+                    value = 40*trap_fun_dist
                 else:
                     if trapped:
                         value = dist
@@ -152,17 +184,32 @@ def draw_axes(screen, font, width, height, rmin, rmax, imin, imax):
         draw_label_with_outline(screen, f"{-im:.1f}i", font, (x_axis + 2, y + 2))
 
 
-def draw_label_with_outline(screen, text, font, pos, text_color=(255, 255, 255), outline_color=(0, 0, 0)):
+def draw_label_with_outline(screen, text, font, pos, text_color=(255, 255, 255), outline_color=(0, 0, 0), alpha=1.0):
     x, y = pos
-    label_surface = font.render(text, True, text_color)
+    a = max(0, min(255, int(alpha * 255)))  # Clamp to [0, 255]
+
+    # Render text and outline
+    text_surface = font.render(text, True, text_color)
     outline_surface = font.render(text, True, outline_color)
 
+    # Create transparent surfaces for alpha blending
+    text_surf_alpha = pygame.Surface(text_surface.get_size(), pygame.SRCALPHA)
+    outline_surf_alpha = pygame.Surface(outline_surface.get_size(), pygame.SRCALPHA)
+
+    # Apply alpha manually
+    text_surf_alpha.blit(text_surface, (0, 0))
+    outline_surf_alpha.blit(outline_surface, (0, 0))
+    text_surf_alpha.set_alpha(a)
+    outline_surf_alpha.set_alpha(a)
+
+    # Blit outlines
     for dx in [-1, 0, 1]:
         for dy in [-1, 0, 1]:
             if dx != 0 or dy != 0:
-                screen.blit(outline_surface, (x + dx, y + dy))
+                screen.blit(outline_surf_alpha, (x + dx, y + dy))
 
-    screen.blit(label_surface, (x, y))
+    # Blit main text
+    screen.blit(text_surf_alpha, (x, y))
 
 
 def draw_state(screen, font, width : int, height : int, rmin : float, rmax : float, imin : float, imax : float, max_iter : int):
@@ -176,6 +223,23 @@ def draw_state(screen, font, width : int, height : int, rmin : float, rmax : flo
     pos_y = screen.get_height() - label_surface.get_height() - 5
 
     draw_label_with_outline(screen, text, font, (pos_x + 2, pos_y + 2))
+
+
+def draw_log(screen, font, width: int, height: int, rmin: float, rmax: float, imin: float, imax: float, max_iter: int):
+    global log
+
+    while len(log) > 10:
+        log.pop(0)
+
+    pos_x = 5
+    pos_y = height - ((len(log)+1) * font.get_linesize()) - 5
+
+    for i in range(len(log)):
+        line = log[i]
+        alpha = float(i) / len(log)  # 0 for oldest, close to 1 for newest
+        draw_label_with_outline(screen, line, font, (pos_x + 2, pos_y + 2), (255, 255, 255), (0, 0, 0, 0), alpha)
+        pos_y += font.get_linesize()
+
 
 
 def draw_orbit(screen, orbit, color, rmin, rmax, imin, imax, width, height):
@@ -205,13 +269,13 @@ def render_mandelbrot(
     mandelbrot_array = compute_mandelbrot(width, height, max_iter, rmin, rmax, imin, imax, inside_color_scheme, outside_color_scheme, orbit_trap)
     mandelbrot_array = np.log(mandelbrot_array + 1)
     mandelbrot_array = mandelbrot_array / np.max(mandelbrot_array)
+    mask = mandelbrot_array != 0
 
     if color_scheme==1:
-        start = 2.5
-        freq = 20
-        r = (0.5 + 0.5*np.cos(start + mandelbrot_array * freq + 0))
-        g = (0.5 + 0.5*np.cos(start + mandelbrot_array * freq + 0.6))
-        b = (0.5 + 0.5*np.cos(start + mandelbrot_array * freq + 1.0))
+        start, freq = 1, 9
+        r = mask * (0.5 + 0.5*np.cos(start + mandelbrot_array * freq + 0))
+        g = mask * (0.5 + 0.5*np.cos(start + mandelbrot_array * freq + 0.6))
+        b = mask * (0.5 + 0.5*np.cos(start + mandelbrot_array * freq + 1.0))
     elif color_scheme==2:
         # use color circle to convert values to hsv colors
         r = np.zeros_like(mandelbrot_array)
@@ -286,7 +350,24 @@ def set_position(center : complex, aoi : complex, width : int, height : int) -> 
     return rmin, rmax, imin, imax
 
 
+def append_log(text):
+    global log
+    global show_log
+
+    log.append(text)
+    pygame.time.set_timer(EVENT_REMOVE_LOG, 5000)
+    show_log = True
+
+
 def main(width, height, max_iter):
+    global show_log
+    global show_state
+    global show_axis
+    global show_orbits
+
+    global EVENT_DOUBLE_CLICK
+    global EVENT_REMOVE_LOG
+
     pygame.init()
     screen = pygame.display.set_mode((width, height))
     pygame.display.set_caption("Mandelbrot mit Orbit-Vorschau")
@@ -296,18 +377,15 @@ def main(width, height, max_iter):
 
     timer_set = False
     running = True
-    save_img_count = 0
     click_count = 0
 
     font = pygame.font.SysFont("Arial", 20)
+    small_font = pygame.font.SysFont("Arial", 12)
 
     #
     # Render Settings
     #
 
-    show_axis = True
-    show_orbits = False
-    show_state = False
     color_scheme = 1
     color_members = True
     use_orbit_trap = False
@@ -318,55 +396,31 @@ def main(width, height, max_iter):
     pos = complex(-0.5, 0)
     recompute = True
 
-    EVENT_DOUBLE_CLICK : int  = pygame.USEREVENT + 1
-
+  
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_o:
+                if event.key == pygame.K_F1:
                     show_orbits = not show_orbits
-
+                    append_log(f"Showing orbits" if show_orbits else "Hiding orbits")
+                    
                     if not show_orbits:
                         saved_orbits.clear()
                         preview_orbit.clear()
                 elif event.key == pygame.K_a:
                     show_axis = not show_axis
+                    append_log(f"Showing axis" if show_orbits else "Hiding axis")
 
                 elif event.key == pygame.K_s:
                     if pygame.key.get_mods() & pygame.KMOD_CTRL:
-                        save_img_count += 1
-                        # use guid to create a unique filename
                         filename = f"mandelbrot_r={pos.real:1.8g},i={pos.imag:1.8g}_{str(uuid.uuid4())[:8]}.png"
-                        pygame.image.save(screen, filename) #f"mandelbrot_{save_img_count}.png")
+                        append_log(f"Saving {filename}")
+                        pygame.image.save(screen, filename)
                     else:
                         show_state = not show_state
-
-                elif event.key == pygame.K_F1:
-                    inside_color_scheme = InsideColorScheme.Black
-                    recompute = True
-
-                elif event.key == pygame.K_F2:
-                    inside_color_scheme = InsideColorScheme.PointDistance
-                    recompute = True
-
-                elif event.key == pygame.K_F3:
-                    outside_color_scheme = OutsideColorScheme.SmoothIterationCount
-                    recompute = True
-
-                elif event.key == pygame.K_F4:
-                    outside_color_scheme = OutsideColorScheme.IterationCount
-                    recompute = True
-
-                elif event.key == pygame.K_F5:
-                    outside_color_scheme = OutsideColorScheme.PointDistance
-                    recompute = True
-
-                elif event.key == pygame.K_F6:
-                    outside_color_scheme = OutsideColorScheme.Black
-                    recompute = True
 
                 elif event.key == pygame.K_F7:
                     orbit_trap = OrbitTrap.NoTrap
@@ -401,6 +455,20 @@ def main(width, height, max_iter):
                     recompute = True
 
                 elif event.key == pygame.K_i:
+                    enum_values = list(InsideColorScheme)
+                    dir = 1 if pygame.key.get_mods() & pygame.KMOD_LSHIFT else (len(enum_values) - 1)
+                    inside_color_scheme = enum_values[(inside_color_scheme.value + dir) % len(enum_values)]
+                    append_log(f"Inside color set to {inside_color_scheme.name}")
+                    recompute = True
+
+                elif event.key == pygame.K_o:
+                    enum_values = list(OutsideColorScheme)                   
+                    dir = 1 if pygame.key.get_mods() & pygame.KMOD_LSHIFT else (len(enum_values) - 1)
+                    outside_color_scheme = enum_values[(outside_color_scheme.value + dir) % len(enum_values)]
+                    append_log(f"Outside color set to {outside_color_scheme.name}")
+                    recompute = True
+
+                elif event.key == pygame.K_PLUS:
                     max_iter = int(max_iter * (0.5 if pygame.key.get_mods() & pygame.KMOD_SHIFT else  1.5))
                     recompute = True
 
@@ -432,7 +500,9 @@ def main(width, height, max_iter):
                     pos = screen_to_complex(mx, my, rmin, rmax, imin, imax, width, height)
                     aoi *= .5
                     recompute = True
-                        
+            elif event.type == EVENT_REMOVE_LOG:                       
+                show_log = False
+
                 pygame.time.set_timer(EVENT_DOUBLE_CLICK, 0)
                 timer_set = False
                 click_count = 0
@@ -465,10 +535,13 @@ def main(width, height, max_iter):
         if show_state:
             draw_state(screen, font, width, height, rmin, rmax, imin, imax, max_iter)
 
+        if show_log:
+            draw_log(screen, small_font, width, height, rmin, rmax, imin, imax, max_iter)
+
         pygame.display.update()
 
     pygame.quit()
 
 
 if __name__ == "__main__":
-    main(800, 800, 500)
+    main(600, 600, 300)
