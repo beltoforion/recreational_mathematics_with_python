@@ -7,13 +7,11 @@ from typing import Tuple
 from enum import Enum
 
 
-class OrbitTrap(Enum):
+class GeometricOrbitTrap(Enum):
     NoTrap = 0
     Lines = 1
     Circle = 2
     LinesAndCircle = 3
-    TrapFunction = 4
-
 
 class OutsideColorScheme(Enum):
     IterationCount = 0
@@ -39,6 +37,7 @@ show_axis = True
 show_orbits = False
 show_state = False
 show_log = False
+show_help = True
 
 def complex_to_screen(z, rmin, rmax, imin, imax, width, height):
     re = z.real
@@ -64,7 +63,7 @@ def compute_mandelbrot(
     imax : float, 
     inside_color_scheme : InsideColorScheme,
     outside_color_scheme : OutsideColorScheme,
-    orbit_trap : OrbitTrap):
+    orbit_trap : GeometricOrbitTrap):
 
     istep = (imax - imin) / dimy
     rstep = (rmax - rmin) / dimx
@@ -106,12 +105,12 @@ def compute_mandelbrot(
                     for point in points:
                         dist = min(dist, abs(z-point))
 
-                if orbit_trap == OrbitTrap.Circle or orbit_trap == OrbitTrap.LinesAndCircle:
+                if orbit_trap == GeometricOrbitTrap.Circle or orbit_trap == GeometricOrbitTrap.LinesAndCircle:
                     if (trap_radius-trap_size) < abs(z) < (trap_radius + trap_size):
                         trap_dist = trap_radius - abs(z)
                         trapped = True
 
-                if orbit_trap == OrbitTrap.Lines or orbit_trap == OrbitTrap.LinesAndCircle:
+                if orbit_trap == GeometricOrbitTrap.Lines or orbit_trap == GeometricOrbitTrap.LinesAndCircle:
                     if abs(z.real) < trap_size:
                         trap_dist = abs(z.real)
                         trapped = True
@@ -149,7 +148,6 @@ def compute_mandelbrot(
                         value = dist
                     else:
                         value = 0
-#                value = dist if color_members else 0
 
             mandelbrot_set[row, col] = value
                 
@@ -253,6 +251,28 @@ def draw_orbit(screen, orbit, color, rmin, rmax, imin, imax, width, height):
     for x, y in points:
         pygame.draw.circle(screen, color, (x, y), 2)
 
+def draw_help(screen, font, width, height):
+    help_text = [
+        "F1       – Toggle this help",
+        "F2       – Toggle orbit preview",
+        "A        – Toggle axes",
+        "S        – Toggle position display",
+        "Ctrl+S   – Save screenshot",
+        "I        – Cycle inside color scheme (Shift = reverse)",
+        "O        – Cycle outside color scheme (Shift = reverse)",
+        "T        – Cycle orbit trap mode (Shift = reverse)",
+        "+ / -    – Increase / decrease max iterations",
+        "Double click – Zoom in",
+        "Single click – Save orbit (if preview visible)",
+    ]
+
+    x, y = 20, 20
+    padding = 5
+
+    for i, line in enumerate(help_text):
+        draw_label_with_outline(screen, line, font, (x, y), (255, 255, 255), (0, 0, 0), 0.9)
+        y += font.get_linesize() + padding
+
 
 def render_mandelbrot(
         width : int, 
@@ -264,7 +284,7 @@ def render_mandelbrot(
         imax : float, 
         inside_color_scheme : InsideColorScheme, 
         outside_color_scheme : OutsideColorScheme, 
-        orbit_trap : OrbitTrap,
+        orbit_trap : GeometricOrbitTrap,
         color_scheme):
     mandelbrot_array = compute_mandelbrot(width, height, max_iter, rmin, rmax, imin, imax, inside_color_scheme, outside_color_scheme, orbit_trap)
     mandelbrot_array = np.log(mandelbrot_array + 1)
@@ -364,6 +384,7 @@ def main(width, height, max_iter):
     global show_state
     global show_axis
     global show_orbits
+    global show_help
 
     global EVENT_DOUBLE_CLICK
     global EVENT_REMOVE_LOG
@@ -381,17 +402,16 @@ def main(width, height, max_iter):
 
     font = pygame.font.SysFont("Arial", 20)
     small_font = pygame.font.SysFont("Arial", 12)
+    help_font = pygame.font.SysFont("Courier New", 18)
 
     #
     # Render Settings
     #
 
     color_scheme = 1
-    color_members = True
-    use_orbit_trap = False
     inside_color_scheme = InsideColorScheme.PointDistance
     outside_color_scheme = OutsideColorScheme.SmoothIterationCount
-    orbit_trap = OrbitTrap.NoTrap
+    orbit_trap = GeometricOrbitTrap.NoTrap
     aoi = complex(3, 3)
     pos = complex(-0.5, 0)
     recompute = True
@@ -404,12 +424,16 @@ def main(width, height, max_iter):
             
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_F1:
+                    show_help = not show_help
+                    append_log(f"Showing help" if show_help else "Hiding help")
+                elif event.key == pygame.K_F2:
                     show_orbits = not show_orbits
                     append_log(f"Showing orbits" if show_orbits else "Hiding orbits")
                     
                     if not show_orbits:
                         saved_orbits.clear()
                         preview_orbit.clear()
+
                 elif event.key == pygame.K_a:
                     show_axis = not show_axis
                     append_log(f"Showing axis" if show_orbits else "Hiding axis")
@@ -421,22 +445,6 @@ def main(width, height, max_iter):
                         pygame.image.save(screen, filename)
                     else:
                         show_state = not show_state
-
-                elif event.key == pygame.K_F7:
-                    orbit_trap = OrbitTrap.NoTrap
-                    recompute = True
-
-                elif event.key == pygame.K_F8:
-                    orbit_trap = OrbitTrap.Lines
-                    recompute = True
-
-                elif event.key == pygame.K_F9:
-                    orbit_trap = OrbitTrap.Circle
-                    recompute = True
-
-                elif event.key == pygame.K_F10:
-                    orbit_trap = OrbitTrap.LinesAndCircle
-                    recompute = True
 
                 elif event.key == pygame.K_1:   
                     color_scheme = 0
@@ -469,43 +477,53 @@ def main(width, height, max_iter):
                     recompute = True
 
                 elif event.key == pygame.K_PLUS:
-                    max_iter = int(max_iter * (0.5 if pygame.key.get_mods() & pygame.KMOD_SHIFT else  1.5))
+                    max_iter = int(max_iter * 1.5)
+                    append_log(f"Increasing max iterations to {max_iter}")
+                    recompute = True
+
+                elif event.key == pygame.K_MINUS:
+                    max_iter = int(max_iter * 0.5)
+                    append_log(f"Reducong max Iterations to {max_iter}")
                     recompute = True
 
                 elif event.key == pygame.K_t:
-                    use_orbit_trap = not use_orbit_trap
-                    recompute = True
-
-                elif event.key == pygame.K_m:
-                    color_members = not color_members
+                    enum_values = list(GeometricOrbitTrap)                   
+                    dir = 1 if pygame.key.get_mods() & pygame.KMOD_LSHIFT else (len(enum_values) - 1)
+                    orbit_trap = enum_values[(orbit_trap.value + dir) % len(enum_values)]
+                    append_log(f"Orbit Trap set to {orbit_trap.name}")
                     recompute = True
 
                 elif event.key == pygame.K_r:
                     aoi = complex(3, 3)
                     pos = complex(-0.5, 0)
                     max_iter = 200
+                    append_log(f"Resetting View")
                     recompute = True
             
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if not timer_set:
-                    pygame.time.set_timer(EVENT_DOUBLE_CLICK, 200)
+                    pygame.time.set_timer(EVENT_DOUBLE_CLICK, 250)
                     click_count += 1
 
             elif event.type == EVENT_DOUBLE_CLICK:
                 if click_count == 1:
                     if preview_orbit:
                         saved_orbits.append(preview_orbit.copy())
+                        append_log(f"Saving orbit")
                 elif click_count == 2:
                     mx, my = pygame.mouse.get_pos()
                     pos = screen_to_complex(mx, my, rmin, rmax, imin, imax, width, height)
                     aoi *= .5
+                    append_log(f"Zooming in to {pos.real:1.7f}, {pos.imag:1.7f}")
                     recompute = True
-            elif event.type == EVENT_REMOVE_LOG:                       
-                show_log = False
 
                 pygame.time.set_timer(EVENT_DOUBLE_CLICK, 0)
                 timer_set = False
                 click_count = 0
+
+            elif event.type == EVENT_REMOVE_LOG:                       
+                show_log = False
+
 
         #
         # Do the rendering
@@ -538,10 +556,13 @@ def main(width, height, max_iter):
         if show_log:
             draw_log(screen, small_font, width, height, rmin, rmax, imin, imax, max_iter)
 
+        if show_help:
+            draw_help(screen, help_font, width, height)
+
         pygame.display.update()
 
     pygame.quit()
 
 
 if __name__ == "__main__":
-    main(600, 600, 300)
+    main(800, 800, 300)
