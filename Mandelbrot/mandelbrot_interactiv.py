@@ -263,7 +263,7 @@ def draw_help(screen, font, width, height):
         "T        – Cycle orbit trap mode (Shift = reverse)",
         "+ / -    – Increase / decrease max iterations",
         "Double click – Zoom in",
-        "Single click – Save orbit (if preview visible)",
+        "Single click – Retain orbit (if orbit preview visible)",
     ]
 
     x, y = 20, 20
