@@ -17,11 +17,12 @@ class GeometricOrbitTrap(Enum):
 
 class OutsideColorScheme(Enum):
     IterationCount = 0
-    SmoothIterationCount = 1
-    SmoothIterationCountPlusTrapFunction = 2
-    TrapFunction = 3
-    PointDistance = 4
-    Black = 5
+    IterationCountPlusTrapFunction = 1
+    SmoothIterationCount = 2
+    SmoothIterationCountPlusTrapFunction = 3
+    TrapFunction = 4
+    PointDistance = 5
+    Black = 6
 
 
 class InsideColorScheme(Enum):
@@ -50,6 +51,11 @@ def trap_function(z, petals=5):
 
 
 @njit(fastmath=True)
+def trap_function2(z, petals=5):
+    return np.log(abs(z) * abs(np.log(abs(z))))
+
+
+@njit(fastmath=True)
 def compute_mandelbrot(
     dimx : int, 
     dimy : int, 
@@ -75,9 +81,9 @@ def compute_mandelbrot(
             c = (rmin + col * rstep) + 1j * (imin + row * istep)
             z = 0
 
-            escape_radius = 100
+            escape_radius = 50
             dist = 1e10
-            trap_fun_dist = trap_function(c, petals)     
+            trap_fun_dist = 1e10 #trap_function(c, petals)     
 
             # Points to check for orbit trap
             points = [complex(0, 0), complex(-1, 0), complex(0, 1), complex(0, -1)]
@@ -87,10 +93,21 @@ def compute_mandelbrot(
             trap_dist = 0
             trap_radius = 0.5
             for k in range(maxiter):
-                #z = z*z + c
-                z = z*z + 0.1 * z*z*z + 0.05 * z*z*z*z + 1.1*c
+                # Mandelbrot Set
+                z = z*z + c
+
+                # Sine Mandelbrot Set
+                #z = np.sin(z) + c
+
+                # Exponential Mandelbrot
+                #z = np.exp(z) + c
+
+                #z = z*z + 0.1 * z*z*z + 0.05 * z*z*z*z + 1.1*c
                 #z = z*z + 2*z +c
                 #z = z*z + 0.19 * z*z*z + c
+                
+                # Burning Ship Fractal:
+                #z = (abs(z.real) + 1j * abs(z.imag))**2 + c
 
                 if abs(z) > escape_radius:
                     break
@@ -121,22 +138,26 @@ def compute_mandelbrot(
 
             if abs(z) > escape_radius:
                 if outside_color_scheme == 0:   # OutsideColorScheme.IterationCount
-                    value = np.log(k)
+                    value = k
 
-                elif outside_color_scheme == 1: # OutsideColorScheme.SmoothIterationCount
+                elif outside_color_scheme == 1: # OutsideColorScheme.IterationCountPlusTrapFunction
+                    value = k
+                    value += .5*trap_fun_dist
+
+                elif outside_color_scheme == 2: # OutsideColorScheme.SmoothIterationCount
                     value  = k + 1 - np.log(np.log(np.abs(z))) / np.log(2)
 
-                elif outside_color_scheme == 2: # OutsideColorScheme.SmoothIterationCountPlusTrapFunction
+                elif outside_color_scheme == 3: # OutsideColorScheme.SmoothIterationCountPlusTrapFunction
                     value  = k + 1 - np.log(np.log(np.abs(z))) / np.log(2)
                     value += .5*trap_fun_dist
 
-                elif outside_color_scheme == 3: # OutsideColorScheme.TrapFunction
-                    value = 40*trap_fun_dist
+                elif outside_color_scheme == 4: # OutsideColorScheme.TrapFunction
+                    value = 60*trap_fun_dist
 
-                elif outside_color_scheme == 4: # OutsideColorScheme.PointDistance
+                elif outside_color_scheme == 5: # OutsideColorScheme.PointDistance
                     value = dist
 
-                elif outside_color_scheme == 5: # OutsideColorScheme.Black
+                elif outside_color_scheme == 6: # OutsideColorScheme.Black
                     value = 0
 
                 else:
@@ -153,10 +174,9 @@ def compute_mandelbrot(
                         value = 0
 
             mandelbrot_set[row, col] = value
-                
+
+    mandelbrot_set = np.log(mandelbrot_set + 1)
     return mandelbrot_set
-
-
 
 
 def complex_to_screen(z, rmin, rmax, imin, imax, width, height):
@@ -268,15 +288,16 @@ def draw_orbit(screen, orbit, color, rmin, rmax, imin, imax, width, height):
 
 def draw_help(screen, font, width, height):
     help_text = [
+        "Mandelbrot Explorer - Key Bindings",
         "F1       – Toggle this help",
         "F2       – Toggle orbit preview",
         "A        – Toggle axes",
-        "S        – Toggle position display",
-        "Ctrl+S   – Save screenshot",
         "I        – Cycle inside color scheme (Shift = reverse)",
         "O        – Cycle outside color scheme (Shift = reverse)",
+        "S        – Toggle position display",
         "T        – Cycle orbit trap mode (Shift = reverse)",
         "+ / -    – Increase / decrease max iterations",
+        "Ctrl+S   – Save screenshot",
         "Double click – Zoom in",
         "Single click – Retain orbit (if orbit preview visible)",
     ]
@@ -301,8 +322,8 @@ def compute_mandelbrot_parallel(
         inside_color_scheme : InsideColorScheme, 
         outside_color_scheme : OutsideColorScheme, 
         orbit_trap : GeometricOrbitTrap):
-    # Split computation domain into n*n chunks
-    # and compute mandelbrot set in parallel
+    
+    # Split computation domain into n*n chunks and compute mandelbrot set in parallel
     n = 8
     chunk_width = width // n
     chunk_height = height // n
@@ -354,11 +375,10 @@ def render_mandelbrot(
         orbit_trap : GeometricOrbitTrap,
         color_scheme):
     
-    # take time
     start_ticks = pygame.time.get_ticks()
 
     mandelbrot_array = compute_mandelbrot_parallel(width, height, max_iter, rmin, rmax, imin, imax, inside_color_scheme, outside_color_scheme, orbit_trap)
-    mandelbrot_array = np.log(mandelbrot_array + 1)
+#    mandelbrot_array = np.log(mandelbrot_array) # + 1)
     mandelbrot_array = mandelbrot_array / np.max(mandelbrot_array)
     mask = mandelbrot_array != 0
 
@@ -466,7 +486,7 @@ def main(width, height, max_iter):
 
     pygame.init()
     screen = pygame.display.set_mode((width, height))
-    pygame.display.set_caption("Mandelbrot mit Orbit-Vorschau")
+    pygame.display.set_caption("Mandelbrot Explorer")
 
     saved_orbits = []
     preview_orbit = []
@@ -513,38 +533,40 @@ def main(width, height, max_iter):
                         saved_orbits.clear()
                         preview_orbit.clear()
 
-                elif event.key == pygame.K_1:   
-                    color_scheme = 0
-                    recompute = True
-                
-                elif event.key == pygame.K_2:
-                    color_scheme = 1
-                    recompute = True
-                
-                elif event.key == pygame.K_3:
-                    color_scheme = 2
-                    recompute = True
-
-                elif event.key == pygame.K_4:
-                    color_scheme = 3
-                    recompute = True
-
-                elif event.key == pygame.K_i:
-                    enum_values = list(InsideColorScheme)
-                    dir = 1 if pygame.key.get_mods() & pygame.KMOD_LSHIFT else (len(enum_values) - 1)
-                    inside_color_scheme = enum_values[(inside_color_scheme.value + dir) % len(enum_values)]
-                    append_log(f"Inside color set to {inside_color_scheme.name}")
-                    recompute = True
-
                 elif event.key == pygame.K_a:
                     show_axis = not show_axis
                     append_log(f"Showing axis" if show_orbits else "Hiding axis")
 
+                elif event.key == pygame.K_c:
+                    if pygame.key.get_mods() & pygame.KMOD_SHIFT:
+                        color_scheme = (color_scheme - 1) % 4
+                    else:
+                        color_scheme = (color_scheme + 1) % 4
+
+                    append_log(f"Color scheme set to {color_scheme}")
+                    recompute = True
+
+                elif event.key == pygame.K_i:
+                    enum_values = list(InsideColorScheme)
+                    dir = 1 if pygame.key.get_mods() & pygame.KMOD_SHIFT else (len(enum_values) - 1)
+                    inside_color_scheme = enum_values[(inside_color_scheme.value + dir) % len(enum_values)]
+                    append_log(f"Inside color set to {inside_color_scheme.name}")
+                    recompute = True
+
                 elif event.key == pygame.K_o:
                     enum_values = list(OutsideColorScheme)                   
-                    dir = 1 if pygame.key.get_mods() & pygame.KMOD_LSHIFT else (len(enum_values) - 1)
+                    dir = 1 if pygame.key.get_mods() & pygame.KMOD_SHIFT else (len(enum_values) - 1)
                     outside_color_scheme = enum_values[(outside_color_scheme.value + dir) % len(enum_values)]
                     append_log(f"Outside color set to {outside_color_scheme.name}")
+                    recompute = True
+
+                elif event.key == pygame.K_n:
+                    if pygame.key.get_mods() & pygame.KMOD_SHIFT:
+                        max_iter = int(max_iter * 0.75)
+                    else:
+                        max_iter = int(max_iter * 1.25)
+
+                    append_log(f"Increasing max iterations to {max_iter}")
                     recompute = True
 
                 elif event.key == pygame.K_r:
@@ -564,7 +586,7 @@ def main(width, height, max_iter):
 
                 elif event.key == pygame.K_t:
                     enum_values = list(GeometricOrbitTrap)                   
-                    dir = 1 if pygame.key.get_mods() & pygame.KMOD_LSHIFT else (len(enum_values) - 1)
+                    dir = 1 if pygame.key.get_mods() & pygame.KMOD_SHIFT else (len(enum_values) - 1)
                     orbit_trap = enum_values[(orbit_trap.value + dir) % len(enum_values)]
                     append_log(f"Orbit Trap set to {orbit_trap.name}")
                     recompute = True
@@ -609,7 +631,6 @@ def main(width, height, max_iter):
 
             elif event.type == EVENT_REMOVE_LOG:                       
                 show_log = False
-
 
         #
         # Do the rendering
