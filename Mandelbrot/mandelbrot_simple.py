@@ -7,6 +7,10 @@ from numba import jit
 def trap_function(z, petals=5):
     return abs(np.sin(petals * np.angle(z)) * np.abs(z))
 
+@jit
+def trap_function2(z, petals=5):
+    return np.log(abs(z) * abs(np.log(abs(z))))
+
 
 @jit
 def compute_mandelbrot(dimx : int, dimy : int, maxiter : int, rmin : float, rmax : float, imin : float, imax : float):
@@ -21,19 +25,21 @@ def compute_mandelbrot(dimx : int, dimy : int, maxiter : int, rmin : float, rmax
             z = 0
             c = (rmin + col * rstep) + 1j * (imin + row * istep)
 
-            dist = 1e10
+            dist = trap_function(c, petals)
             for k in range(maxiter):
                 z = z*z + c
 
                 dist = min(dist, trap_function(z, petals))
-
+#                dist += min(dist, trap_function2(z, petals))
+            
                 if abs(z) > escape_radius:
+#                    mandelbrot_set[row, col] = dist
                     mandelbrot_set[row, col] = k + 1 - np.log(np.log(np.abs(z))) / np.log(2)
                     mandelbrot_set[row, col] += 0.5*dist
                     break
 
             else:
-                mandelbrot_set[row, col] = dist * 40
+                mandelbrot_set[row, col] = 40*dist
 
     return mandelbrot_set
 
@@ -52,6 +58,7 @@ def main(width, height, max_iter):
 
     mask = mandelbrot_array != 0
     start, freq = 1, 9
+#    start, freq = 2.3, 0.1
     r = mask * (0.5 + 0.5*np.cos(start + mandelbrot_array * freq + 0))
     g = mask * (0.5 + 0.5*np.cos(start + mandelbrot_array * freq + 0.6))
     b = mask * (0.5 + 0.5*np.cos(start + mandelbrot_array * freq + 1.0))
@@ -72,4 +79,4 @@ def main(width, height, max_iter):
 
 
 if __name__=="__main__":
-    main(2*1920, 2*1080, 500)
+    main(800, 800, 200)
