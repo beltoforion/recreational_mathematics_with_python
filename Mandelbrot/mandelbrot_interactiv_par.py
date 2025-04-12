@@ -2,10 +2,10 @@ import pygame
 import numpy as np
 import uuid
 import colorsys
-from numba import njit, prange, cuda
+import os
+from numba import njit, prange
 from typing import Tuple
 from enum import Enum
-#from mandelbrot_interactiv_par_kernel import compute_mandelbrot
 
 
 class GeometricOrbitTrap(Enum):
@@ -13,6 +13,7 @@ class GeometricOrbitTrap(Enum):
     Lines = 1
     Circle = 2
     LinesAndCircle = 3
+
 
 class OutsideColorScheme(Enum):
     IterationCount = 0
@@ -34,11 +35,14 @@ log = []
 EVENT_DOUBLE_CLICK : int  = pygame.USEREVENT + 1
 EVENT_REMOVE_LOG : int = pygame.USEREVENT + 2
 
+script_path = os.path.dirname(__file__)
+
 show_axis = True
 show_orbits = False
 show_state = False
 show_log = False
 show_help = True
+
 
 @njit(fastmath=True)
 def trap_function(z, petals=5):
@@ -83,8 +87,8 @@ def compute_mandelbrot(
             trap_dist = 0
             trap_radius = 0.5
             for k in range(maxiter):
-                z = z*z + c
-                #z = z*z + 0.1 * z*z*z + 0.05 * z*z*z*z + 1.1*c
+                #z = z*z + c
+                z = z*z + 0.1 * z*z*z + 0.05 * z*z*z*z + 1.1*c
                 #z = z*z + 2*z +c
                 #z = z*z + 0.19 * z*z*z + c
 
@@ -500,6 +504,7 @@ def main(width, height, max_iter):
                 if event.key == pygame.K_F1:
                     show_help = not show_help
                     append_log(f"Showing help" if show_help else "Hiding help")
+
                 elif event.key == pygame.K_F2:
                     show_orbits = not show_orbits
                     append_log(f"Showing orbits" if show_orbits else "Hiding orbits")
@@ -507,18 +512,6 @@ def main(width, height, max_iter):
                     if not show_orbits:
                         saved_orbits.clear()
                         preview_orbit.clear()
-
-                elif event.key == pygame.K_a:
-                    show_axis = not show_axis
-                    append_log(f"Showing axis" if show_orbits else "Hiding axis")
-
-                elif event.key == pygame.K_s:
-                    if pygame.key.get_mods() & pygame.KMOD_CTRL:
-                        filename = f"mandelbrot_r={pos.real:2.12g},i={pos.imag:2.12g}_{str(uuid.uuid4())[:8]}.png"
-                        append_log(f"Saving {filename}")
-                        pygame.image.save(screen, filename)
-                    else:
-                        show_state = not show_state
 
                 elif event.key == pygame.K_1:   
                     color_scheme = 0
@@ -543,11 +536,37 @@ def main(width, height, max_iter):
                     append_log(f"Inside color set to {inside_color_scheme.name}")
                     recompute = True
 
+                elif event.key == pygame.K_a:
+                    show_axis = not show_axis
+                    append_log(f"Showing axis" if show_orbits else "Hiding axis")
+
                 elif event.key == pygame.K_o:
                     enum_values = list(OutsideColorScheme)                   
                     dir = 1 if pygame.key.get_mods() & pygame.KMOD_LSHIFT else (len(enum_values) - 1)
                     outside_color_scheme = enum_values[(outside_color_scheme.value + dir) % len(enum_values)]
                     append_log(f"Outside color set to {outside_color_scheme.name}")
+                    recompute = True
+
+                elif event.key == pygame.K_r:
+                    aoi = complex(3, 3)
+                    pos = complex(-0.5, 0)
+                    max_iter = 200
+                    append_log(f"Resetting View")
+                    recompute = True
+
+                elif event.key == pygame.K_s:
+                    if pygame.key.get_mods() & pygame.KMOD_CTRL:
+                        filename = f"{script_path}/mandelbrot_r={pos.real:2.12g},i={pos.imag:2.12g}_{str(uuid.uuid4())[:8]}.png"
+                        pygame.image.save(screen, filename)
+                        append_log(f"Saved {filename}")
+                    else:
+                        show_state = not show_state
+
+                elif event.key == pygame.K_t:
+                    enum_values = list(GeometricOrbitTrap)                   
+                    dir = 1 if pygame.key.get_mods() & pygame.KMOD_LSHIFT else (len(enum_values) - 1)
+                    orbit_trap = enum_values[(orbit_trap.value + dir) % len(enum_values)]
+                    append_log(f"Orbit Trap set to {orbit_trap.name}")
                     recompute = True
 
                 elif event.key == pygame.K_PLUS:
@@ -558,20 +577,6 @@ def main(width, height, max_iter):
                 elif event.key == pygame.K_MINUS:
                     max_iter = int(max_iter * 0.75)
                     append_log(f"Reducing max Iterations to {max_iter}")
-                    recompute = True
-
-                elif event.key == pygame.K_t:
-                    enum_values = list(GeometricOrbitTrap)                   
-                    dir = 1 if pygame.key.get_mods() & pygame.KMOD_LSHIFT else (len(enum_values) - 1)
-                    orbit_trap = enum_values[(orbit_trap.value + dir) % len(enum_values)]
-                    append_log(f"Orbit Trap set to {orbit_trap.name}")
-                    recompute = True
-
-                elif event.key == pygame.K_r:
-                    aoi = complex(3, 3)
-                    pos = complex(-0.5, 0)
-                    max_iter = 200
-                    append_log(f"Resetting View")
                     recompute = True
 
                 elif event.key == pygame.K_SPACE:

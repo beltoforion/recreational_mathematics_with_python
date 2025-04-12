@@ -2,7 +2,8 @@ import pygame
 import numpy as np
 import uuid
 import colorsys
-from numba import jit, njit,prange
+import os
+from numba import njit
 from typing import Tuple
 from enum import Enum
 
@@ -32,6 +33,8 @@ log = []
 
 EVENT_DOUBLE_CLICK : int  = pygame.USEREVENT + 1
 EVENT_REMOVE_LOG : int = pygame.USEREVENT + 2
+
+script_path = os.path.dirname(__file__)
 
 show_axis = True
 show_orbits = False
