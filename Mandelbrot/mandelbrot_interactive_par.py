@@ -13,6 +13,7 @@ class GeometricOrbitTrap(Enum):
     Lines = 1
     Circle = 2
     LinesAndCircle = 3
+    Grid = 4
 
 
 class OutsideColorScheme(Enum):
@@ -88,7 +89,7 @@ def compute_mandelbrot(
             points = [complex(0, 0), complex(-1, 0), complex(0, 1), complex(0, -1)]
 
             trapped = False
-            trap_size = 0.01
+            trap_size = 0.005 #0.01
             trap_dist = 0
             trap_radius = 0.5
             for k in range(maxiter):
@@ -129,6 +130,18 @@ def compute_mandelbrot(
                         trapped = True
                     elif abs(z.imag) < trap_size:
                         trap_dist = abs(z.imag)
+                        trapped = True
+
+                if orbit_trap == 4:
+                    grid_spacing = 0.4
+                    dx = abs(z.real % grid_spacing)
+                    dx = min(dx, grid_spacing - dx)
+                    dy = abs(z.imag % grid_spacing)
+                    dy = min(dy, grid_spacing - dy)
+                    grid_dist = min(dx, dy)
+
+                    if grid_dist < trap_size:
+                        trap_dist = grid_dist
                         trapped = True
 
                 if trapped:
@@ -290,11 +303,11 @@ def draw_help(screen, font, width, height):
         "Mandelbrot Explorer - Key Bindings",
         "F1       – Toggle this help",
         "F2       – Toggle orbit preview",
-        "A        – Toggle axes",
-        "I        – Cycle inside color scheme (Shift = reverse)",
-        "O        – Cycle outside color scheme (Shift = reverse)",
-        "S        – Toggle position display",
-        "T        – Cycle orbit trap mode (Shift = reverse)",
+        "a        – Toggle axes",
+        "i        – Cycle inside color scheme (Shift = reverse)",
+        "o        – Cycle outside color scheme (Shift = reverse)",
+        "s        – Toggle position display",
+        "t        – Cycle orbit trap mode (Shift = reverse)",
         "+ / -    – Increase / decrease max iterations",
         "Ctrl+S   – Save screenshot",
         "Double click – Zoom in",
@@ -303,7 +316,7 @@ def draw_help(screen, font, width, height):
     ]
 
     x, y = 20, 20
-    padding = 5
+    padding = 2
 
     for i, line in enumerate(help_text):
         draw_label_with_outline(screen, line, font, (x, y), (255, 255, 255), (0, 0, 0), 0.9)
@@ -536,10 +549,6 @@ def main(width, height, max_iter):
                     append_log(f"Outside color set to {outside_color_scheme.name}")
                     recompute = True
 
-                elif event.key == pygame.K_x:
-                    max_iter = 1
-                    recompute = True
-
                 elif event.key == pygame.K_n:
                     if pygame.key.get_mods() & pygame.KMOD_CTRL:
                         max_iter += 1
@@ -574,22 +583,16 @@ def main(width, height, max_iter):
                     recompute = True
 
                 elif event.key == pygame.K_PLUS:
-                    max_iter = int(max_iter * 1.24)
+                    max_iter += max(int(max_iter * .25), 1)
                     append_log(f"Increasing max iterations to {max_iter}")
                     recompute = True
 
                 elif event.key == pygame.K_MINUS:
-                    max_iter = int(max_iter * 0.75)
+                    max_iter -= max(int(max_iter * 0.25), 1)
+                    max_iter = max(max_iter, 1)
                     append_log(f"Reducing max Iterations to {max_iter}")
                     recompute = True
 
-                elif event.key == pygame.K_SPACE:
-                    dr = rmax - rmin
-                    str_data = f"{dr:4.10g}, {max_iter}\r\n"
-                    # append str to file "iter.txt"
-                    with open("iter.txt", "a") as f:
-                        f.write(str_data)
-            
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 4:
                     color_start += 1
@@ -665,5 +668,5 @@ def main(width, height, max_iter):
 
 
 if __name__ == "__main__":
-    scale = 1.5
+    scale = 1.8
     main(int(scale*860), int(scale*540), 300)
