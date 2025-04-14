@@ -273,7 +273,7 @@ def draw_state(screen, font, width : int, height : int, rmin : float, rmax : flo
 def draw_log(screen, font, width: int, height: int, rmin: float, rmax: float, imin: float, imax: float, max_iter: int):
     global log
 
-    while len(log) > 10:
+    while len(log) > 20:
         log.pop(0)
 
     pos_x = 5
@@ -376,11 +376,15 @@ def compute_mandelbrot_parallel(
 
 
 def color_mandelbrot(mandelbrot_array, mask, color_scheme, color_start):
-    if color_scheme==1:
+    if color_scheme==0:
         start, freq = color_start/20, 9
         r = mask * (0.5 + 0.5*np.cos(start + mandelbrot_array * freq + 0))
         g = mask * (0.5 + 0.5*np.cos(start + mandelbrot_array * freq + 0.6))
         b = mask * (0.5 + 0.5*np.cos(start + mandelbrot_array * freq + 1.0))
+    elif color_scheme==1:        
+        r = mandelbrot_array
+        g = mandelbrot_array
+        b = mandelbrot_array
     elif color_scheme==2:
         # use color circle to convert values to hsv colors
         r = np.zeros_like(mandelbrot_array)
@@ -397,24 +401,25 @@ def color_mandelbrot(mandelbrot_array, mask, color_scheme, color_start):
                     s = 1
                     v = .5
                     r[i, j], g[i, j], b[i, j] = colorsys.hsv_to_rgb(h/360, s, v)
-    elif color_scheme==3:
-        r = np.zeros_like(mandelbrot_array)
-        g = np.zeros_like(mandelbrot_array)
-        b = np.zeros_like(mandelbrot_array)
-        for i in range(mandelbrot_array.shape[0]):
-            for j in range(mandelbrot_array.shape[1]):
-                if mandelbrot_array[i, j] == 0:
-                    r[i, j] = 0
-                    g[i, j] = 0
-                    b[i, j] = 0
-                else:
-                    r[i, j] = 1
-                    g[i, j] = 1
-                    b[i, j] = 1
     else:
-        r = mandelbrot_array
-        g = mandelbrot_array
-        b = mandelbrot_array
+        r = (mandelbrot_array != 0).astype(np.uint8)
+        g = r.copy()
+        b = r.copy()
+
+        # r = np.zeros_like(mandelbrot_array)
+        # g = np.zeros_like(mandelbrot_array)
+        # b = np.zeros_like(mandelbrot_array)
+        
+        # for i in range(mandelbrot_array.shape[0]):
+        #     for j in range(mandelbrot_array.shape[1]):
+        #         if mandelbrot_array[i, j] == 0:
+        #             r[i, j] = 0
+        #             g[i, j] = 0
+        #             b[i, j] = 0
+        #         else:
+        #             r[i, j] = 1
+        #             g[i, j] = 1
+        #             b[i, j] = 1
 
     r = (r / np.max(r) * 255).astype(np.uint8)
     g = (g / np.max(g) * 255).astype(np.uint8)
@@ -457,9 +462,11 @@ def set_position(center : complex, aoi : complex, width : int, height : int) -> 
 
 def append_log(text):
     global log
+    global show_log
 
     log.append(text)
     pygame.time.set_timer(EVENT_REMOVE_LOG, 5000)
+    show_log = True
 
 
 def main(width, height, max_iter):
@@ -491,7 +498,7 @@ def main(width, height, max_iter):
     # Render Settings
     #
 
-    color_scheme = 1
+    color_scheme = 0
     color_start = 1
     inside_color_scheme = InsideColorScheme.TrapFunction
     outside_color_scheme = OutsideColorScheme.SmoothIterationCountPlusTrapFunction
@@ -619,7 +626,7 @@ def main(width, height, max_iter):
                 timer_set = False
                 click_count = 0
 
-            elif event.type == EVENT_REMOVE_LOG:                       
+            elif event.type == EVENT_REMOVE_LOG:                   
                 show_log = False
 
         #
@@ -634,7 +641,7 @@ def main(width, height, max_iter):
             mandelbrot_array = mandelbrot_array / np.max(mandelbrot_array)
             mask = mandelbrot_array != 0
             elapsed = pygame.time.get_ticks() - start_ticks
-            print(f"Rendering took {elapsed} ms")
+            append_log(f"Computation time: {elapsed} ms")
             recompute = False
         
         surface = color_mandelbrot(mandelbrot_array, mask, color_scheme, color_start)
@@ -671,3 +678,4 @@ def main(width, height, max_iter):
 if __name__ == "__main__":
     scale = 1.8
     main(int(scale*860), int(scale*540), 300)
+#    main(10, 10, 300)
