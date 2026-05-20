@@ -230,17 +230,21 @@ def main() -> None:
 
     def random_raindrop() -> None:
         d = rng.normal(size=3)
+        sign = 1.0 if rng.random() < 0.5 else -1.0
+        amp  = sign * rng.uniform(0.3, 1.0) * RAIN_AMPL
         add_gaussian(u, points, RADIUS,
-                     direction=d, amplitude=RAIN_AMPL, sigma=RAIN_SIGMA)
+                     direction=d, amplitude=amp, sigma=RAIN_SIGMA)
 
     random_raindrop()
 
     vertices_local = sv.vertices.copy()
 
-    # Rotation state
-    angle_y = 0.0
-    angle_x = 0.35
-    dragging = False
+    # Rotation state.  spin_angle rotates the Earth around its polar axis
+    # (world +Z), tilt_angle is the camera tilt around the view X axis with
+    # tilt < 0 keeping the north pole at the top of the screen.
+    spin_angle = 0.0
+    tilt_angle = -1.0  # ~ -57 deg; view center near 33 deg N
+    dragging   = False
     last_mouse = (0, 0)
 
     clock = pygame.time.Clock()
@@ -266,10 +270,11 @@ def main() -> None:
             elif event.type == pygame.MOUSEMOTION and dragging:
                 dx = event.pos[0] - last_mouse[0]
                 dy = event.pos[1] - last_mouse[1]
-                angle_y += dx * MOUSE_SENS
-                angle_x += dy * MOUSE_SENS
-                # clamp vertical tilt so the poles don't flip past the camera
-                angle_x = max(-math.pi / 2, min(math.pi / 2, angle_x))
+                spin_angle += dx * MOUSE_SENS
+                tilt_angle -= dy * MOUSE_SENS
+                # keep north pole visible at the top of the screen
+                tilt_angle = max(-math.pi / 2 + 0.05,
+                                 min(-0.05, tilt_angle))
                 last_mouse = event.pos
 
         # ---- random raindrop sources -----------------------------------------
@@ -289,17 +294,19 @@ def main() -> None:
             tick += 1
 
         # ---- rotation & projection ------------------------------------------
+        # World spins around its polar axis (+Z), then is tilted around the
+        # view X axis so the north pole shows at the top of the screen.
         if not dragging:
-            angle_y += AUTO_ROTATE
-        cy, sy = math.cos(angle_y), math.sin(angle_y)
-        cx, sx = math.cos(angle_x), math.sin(angle_x)
-        Ry = np.array([[ cy, 0.0,  sy],
-                       [0.0, 1.0, 0.0],
-                       [-sy, 0.0,  cy]])
+            spin_angle += AUTO_ROTATE
+        cz, sz = math.cos(spin_angle), math.sin(spin_angle)
+        cx, sx = math.cos(tilt_angle), math.sin(tilt_angle)
+        Rz = np.array([[ cz, -sz, 0.0],
+                       [ sz,  cz, 0.0],
+                       [0.0, 0.0, 1.0]])
         Rx = np.array([[1.0, 0.0, 0.0],
                        [0.0,  cx, -sx],
                        [0.0,  sx,  cx]])
-        R = Rx @ Ry
+        R = Rx @ Rz
 
         points_rot   = points          @ R.T
         vertices_rot = vertices_local  @ R.T
