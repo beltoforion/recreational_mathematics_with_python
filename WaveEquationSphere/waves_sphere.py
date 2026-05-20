@@ -29,13 +29,16 @@ from scipy.spatial import SphericalVoronoi
 
 # --- Simulation parameters ----------------------------------------------------
 
-N_POINTS    = 2500     # number of Voronoi cells on the sphere
+N_POINTS    = 8000     # number of Voronoi cells on the sphere
 RADIUS      = 1.0      # sphere radius
 WAVE_SPEED  = 0.5      # propagation speed c
 CFL         = 0.35     # safety factor for the time step
 SCREEN_SIZE = 800      # window edge length in pixels
 AUTO_ROTATE = 0.004    # radians per frame around the vertical axis
 SUBSTEPS    = 2        # physics steps per rendered frame
+RAIN_RATE   = 0.04     # probability per frame of a new "raindrop"
+RAIN_SIGMA  = 0.035    # angular width of a raindrop
+RAIN_AMPL   = 0.8      # amplitude of a raindrop
 
 
 # --- Mesh generation ----------------------------------------------------------
@@ -170,9 +173,14 @@ def main() -> None:
 
     N = len(points)
     u = np.zeros((3, N), dtype=np.float64)
-    add_gaussian(u, points, RADIUS,
-                 direction=np.array([0.0, 0.0, 1.0]),
-                 amplitude=1.0, sigma=0.08)
+    rng = np.random.default_rng()
+
+    def random_raindrop() -> None:
+        d = rng.normal(size=3)
+        add_gaussian(u, points, RADIUS,
+                     direction=d, amplitude=RAIN_AMPL, sigma=RAIN_SIGMA)
+
+    random_raindrop()
 
     vertices_local = sv.vertices.copy()
 
@@ -191,14 +199,14 @@ def main() -> None:
                 if event.key == pygame.K_ESCAPE:
                     running = False
                 elif event.key == pygame.K_SPACE:
-                    rand = np.random.default_rng().normal(size=3)
-                    add_gaussian(u, points, RADIUS,
-                                 direction=rand, amplitude=1.0, sigma=0.06)
+                    random_raindrop()
                 elif event.key == pygame.K_r:
                     u[:] = 0.0
-                    add_gaussian(u, points, RADIUS,
-                                 direction=np.array([0.0, 0.0, 1.0]),
-                                 amplitude=1.0, sigma=0.08)
+                    random_raindrop()
+
+        # ---- random raindrop sources -----------------------------------------
+        if rng.random() < RAIN_RATE:
+            random_raindrop()
 
         # ---- physics: leapfrog update on the Voronoi mesh --------------------
         for _ in range(SUBSTEPS):
@@ -246,7 +254,7 @@ def main() -> None:
         info = (f"Spherical Voronoi  |  N = {N} cells, {n_edges} edges  |  "
                 f"t = {tick * dt:5.2f} s  |  FPS = {clock.get_fps():4.1f}")
         screen.blit(font.render(info, True, (230, 230, 230)), (8, 6))
-        screen.blit(font.render("SPACE: add wave    R: reset    ESC: quit",
+        screen.blit(font.render("SPACE: drop    R: reset    ESC: quit",
                                 True, (170, 170, 180)),
                     (8, SCREEN_SIZE - 22))
 
