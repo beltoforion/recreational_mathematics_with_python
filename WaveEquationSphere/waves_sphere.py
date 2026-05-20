@@ -24,6 +24,7 @@ import time
 
 import numpy as np
 import pygame
+from global_land_mask import globe
 from scipy.spatial import SphericalVoronoi
 
 
@@ -41,6 +42,9 @@ DAMP_HALF   = 6.0      # amplitude half-life in seconds (None = no damping)
 RAIN_RATE   = 0.04     # probability per frame of a new "raindrop"
 RAIN_SIGMA  = 0.035    # angular width of a raindrop
 RAIN_AMPL   = 0.8      # amplitude of a raindrop
+
+LAND_SPEED_RATIO = 0.30                  # wave speed on land relative to WAVE_SPEED
+LAND_TINT        = (0.82, 0.68, 0.42)    # multiplicative RGB tint for land cells
 
 
 # --- Mesh generation ----------------------------------------------------------
@@ -132,16 +136,36 @@ def add_gaussian(u: np.ndarray, points: np.ndarray, radius: float,
 
 # --- Rendering ----------------------------------------------------------------
 
-def colormap(values: np.ndarray, scale: float) -> list:
-    """Map signed displacement values to a list of (R, G, B) tuples."""
+def classify_land(points: np.ndarray, radius: float) -> np.ndarray:
+    """For each generator point, query whether it sits over land or sea.
+
+    Convention: z is the rotation axis (north pole), x points to (lat 0, lon 0).
+    Uses global-land-mask, which is a 1-degree resolution bundled dataset.
+    """
+    p   = points / radius
+    lat = np.degrees(np.arcsin( np.clip(p[:, 2], -1.0, 1.0)))
+    lon = np.degrees(np.arctan2(p[:, 1], p[:, 0]))
+    return globe.is_land(lat, lon)
+
+
+def colormap(values: np.ndarray, scale: float,
+             tint: np.ndarray | None = None) -> list:
+    """Map signed displacement values to a list of (R, G, B) tuples.
+
+    `tint` is an optional (N, 3) array of per-cell multiplicative RGB factors
+    used to color land cells differently from sea cells.
+    """
     v   = np.clip(values / scale, -1.0, 1.0)
     pos = np.clip( v, 0.0, 1.0)
     neg = np.clip(-v, 0.0, 1.0)
-    rgb = np.empty((len(values), 3), dtype=np.int16)
-    rgb[:, 0] = 255 - (255 * neg).astype(np.int16)
-    rgb[:, 1] = 255 - (255 * (pos + neg)).astype(np.int16)
-    rgb[:, 2] = 255 - (255 * pos).astype(np.int16)
-    return rgb.tolist()
+    rgb = np.empty((len(values), 3), dtype=np.float32)
+    rgb[:, 0] = 255.0 - 255.0 * neg
+    rgb[:, 1] = 255.0 - 255.0 * (pos + neg)
+    rgb[:, 2] = 255.0 - 255.0 * pos
+    if tint is not None:
+        rgb *= tint
+    np.clip(rgb, 0.0, 255.0, out=rgb)
+    return rgb.astype(np.int16).tolist()
 
 
 def draw_sphere(screen, vx_int, vy_int, visible_idx, cell_regions, colors):
@@ -176,7 +200,16 @@ def main() -> None:
 
     n_edges = len(src) // 2
     dt = CFL * min_d / WAVE_SPEED
-    c2dt2 = (WAVE_SPEED * dt) ** 2
+
+    # Per-cell wave speed: land is slower than water, which produces visible
+    # refraction and partial reflection at the coastlines.
+    is_land = classify_land(points, RADIUS)
+    c_per = np.where(is_land, WAVE_SPEED * LAND_SPEED_RATIO, WAVE_SPEED)
+    c2dt2 = (c_per * dt) ** 2
+
+    # Multiplicative RGB tint per cell - sandy color over land, identity over sea.
+    tint = np.ones((len(points), 3), dtype=np.float32)
+    tint[is_land] = LAND_TINT
 
     # Damping: u'' + gamma u' = c^2 Laplace(u).  alpha = gamma*dt/2 controls
     # how strongly the previous step is attenuated each update.
@@ -185,7 +218,8 @@ def main() -> None:
     damp_num = 1.0 - alpha
     damp_den = 1.0 + alpha
 
-    print(f"  cells = {len(points)}, edges = {n_edges}")
+    print(f"  cells = {len(points)}, edges = {n_edges}  "
+          f"(land = {int(is_land.sum())}, sea = {int((~is_land).sum())})")
     print(f"  min generator distance = {min_d:.4f}")
     print(f"  dt = {dt:.5f}  (CFL = {CFL})")
     print(f"  damping: gamma = {gamma:.4f} /s  (amplitude half-life {DAMP_HALF} s)")
@@ -280,7 +314,7 @@ def main() -> None:
         # ---- coloring --------------------------------------------------------
         u_curr  = u[1]
         max_abs = max(0.4, float(np.abs(u_curr).max()))
-        colors  = colormap(u_curr, max_abs)
+        colors  = colormap(u_curr, max_abs, tint)
 
         # ---- draw ------------------------------------------------------------
         screen.fill((18, 18, 28))
