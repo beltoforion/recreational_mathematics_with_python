@@ -37,7 +37,7 @@ SCREEN_SIZE = 800      # window edge length in pixels
 AUTO_ROTATE = 0.003    # radians per frame around the vertical axis (paused while dragging)
 MOUSE_SENS  = 0.008    # radians per pixel of mouse drag
 SUBSTEPS    = 2        # physics steps per rendered frame
-DAMP_HALF   = 15.0     # amplitude half-life in seconds (None = no damping)
+DAMP_HALF   = 6.0      # amplitude half-life in seconds (None = no damping)
 RAIN_RATE   = 0.04     # probability per frame of a new "raindrop"
 RAIN_SIGMA  = 0.035    # angular width of a raindrop
 RAIN_AMPL   = 0.8      # amplitude of a raindrop
