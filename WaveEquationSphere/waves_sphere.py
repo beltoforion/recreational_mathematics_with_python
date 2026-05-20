@@ -37,6 +37,7 @@ SCREEN_SIZE = 800      # window edge length in pixels
 AUTO_ROTATE = 0.003    # radians per frame around the vertical axis (paused while dragging)
 MOUSE_SENS  = 0.008    # radians per pixel of mouse drag
 SUBSTEPS    = 2        # physics steps per rendered frame
+DAMP_HALF   = 15.0     # amplitude half-life in seconds (None = no damping)
 RAIN_RATE   = 0.04     # probability per frame of a new "raindrop"
 RAIN_SIGMA  = 0.035    # angular width of a raindrop
 RAIN_AMPL   = 0.8      # amplitude of a raindrop
@@ -176,9 +177,18 @@ def main() -> None:
     n_edges = len(src) // 2
     dt = CFL * min_d / WAVE_SPEED
     c2dt2 = (WAVE_SPEED * dt) ** 2
+
+    # Damping: u'' + gamma u' = c^2 Laplace(u).  alpha = gamma*dt/2 controls
+    # how strongly the previous step is attenuated each update.
+    gamma = math.log(2.0) / DAMP_HALF if DAMP_HALF else 0.0
+    alpha = 0.5 * gamma * dt
+    damp_num = 1.0 - alpha
+    damp_den = 1.0 + alpha
+
     print(f"  cells = {len(points)}, edges = {n_edges}")
     print(f"  min generator distance = {min_d:.4f}")
     print(f"  dt = {dt:.5f}  (CFL = {CFL})")
+    print(f"  damping: gamma = {gamma:.4f} /s  (amplitude half-life {DAMP_HALF} s)")
 
     N = len(points)
     u = np.zeros((3, N), dtype=np.float64)
@@ -239,7 +249,7 @@ def main() -> None:
             np.add.at(lap, src, flux)
             lap /= areas
 
-            u_next = 2.0 * u[1] - u[2] + c2dt2 * lap
+            u_next = (2.0 * u[1] - damp_num * u[2] + c2dt2 * lap) / damp_den
             u[2] = u[1]
             u[1] = u_next
             tick += 1
