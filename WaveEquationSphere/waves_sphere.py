@@ -29,7 +29,7 @@ from scipy.spatial import SphericalVoronoi
 
 # --- Simulation parameters ----------------------------------------------------
 
-N_POINTS    = 12000    # number of Voronoi cells on the sphere
+N_POINTS    = 24000    # number of Voronoi cells on the sphere
 RADIUS      = 1.0      # sphere radius
 WAVE_SPEED  = 0.5      # propagation speed c
 CFL         = 0.35     # safety factor for the time step
@@ -143,12 +143,19 @@ def colormap(values: np.ndarray, scale: float) -> list:
     return rgb.tolist()
 
 
-def draw_sphere(screen, vx, vy, points_z, cell_regions, colors):
-    """Draw all front-facing Voronoi cells as filled polygons."""
-    for i, region in enumerate(cell_regions):
-        if points_z[i] <= 0.0:
-            continue
-        poly = [(int(vx[k]), int(vy[k])) for k in region]
+def draw_sphere(screen, vx_int, vy_int, visible_idx, cell_regions, colors):
+    """Draw front-facing Voronoi cells as filled polygons.
+
+    Args:
+        vx_int, vy_int: Python lists of integer screen coordinates
+            (one per Voronoi vertex).
+        visible_idx:    Python list of cell indices with z > 0 in view space.
+        cell_regions:   list of vertex-index lists, one per cell.
+        colors:         list of (R, G, B) tuples, one per cell.
+    """
+    for i in visible_idx:
+        region = cell_regions[i]
+        poly = [(vx_int[k], vy_int[k]) for k in region]
         pygame.draw.polygon(screen, colors[i], poly)
 
 
@@ -256,8 +263,9 @@ def main() -> None:
         scale = SCREEN_SIZE * 0.42
         cx_s  = SCREEN_SIZE // 2
         cy_s  = SCREEN_SIZE // 2
-        vx = ( vertices_rot[:, 0] * scale + cx_s)
-        vy = (-vertices_rot[:, 1] * scale + cy_s)
+        vx_int = ( vertices_rot[:, 0] * scale + cx_s).astype(np.int32).tolist()
+        vy_int = (-vertices_rot[:, 1] * scale + cy_s).astype(np.int32).tolist()
+        visible = np.flatnonzero(points_rot[:, 2] > 0.0).tolist()
 
         # ---- coloring --------------------------------------------------------
         u_curr  = u[1]
@@ -266,7 +274,7 @@ def main() -> None:
 
         # ---- draw ------------------------------------------------------------
         screen.fill((18, 18, 28))
-        draw_sphere(screen, vx, vy, points_rot[:, 2], sv.regions, colors)
+        draw_sphere(screen, vx_int, vy_int, visible, sv.regions, colors)
 
         info = (f"Spherical Voronoi  |  N = {N} cells, {n_edges} edges  |  "
                 f"t = {tick * dt:5.2f} s  |  FPS = {clock.get_fps():4.1f}")
