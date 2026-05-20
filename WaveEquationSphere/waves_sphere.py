@@ -29,12 +29,13 @@ from scipy.spatial import SphericalVoronoi
 
 # --- Simulation parameters ----------------------------------------------------
 
-N_POINTS    = 8000     # number of Voronoi cells on the sphere
+N_POINTS    = 12000    # number of Voronoi cells on the sphere
 RADIUS      = 1.0      # sphere radius
 WAVE_SPEED  = 0.5      # propagation speed c
 CFL         = 0.35     # safety factor for the time step
 SCREEN_SIZE = 800      # window edge length in pixels
-AUTO_ROTATE = 0.004    # radians per frame around the vertical axis
+AUTO_ROTATE = 0.003    # radians per frame around the vertical axis (paused while dragging)
+MOUSE_SENS  = 0.008    # radians per pixel of mouse drag
 SUBSTEPS    = 2        # physics steps per rendered frame
 RAIN_RATE   = 0.04     # probability per frame of a new "raindrop"
 RAIN_SIGMA  = 0.035    # angular width of a raindrop
@@ -130,15 +131,16 @@ def add_gaussian(u: np.ndarray, points: np.ndarray, radius: float,
 
 # --- Rendering ----------------------------------------------------------------
 
-def colormap(values: np.ndarray, scale: float) -> np.ndarray:
-    """Map signed displacement values to RGB (blue = negative, red = positive)."""
-    v = np.clip(values / scale, -1.0, 1.0)
-    pos = np.clip(v, 0.0, 1.0)
+def colormap(values: np.ndarray, scale: float) -> list:
+    """Map signed displacement values to a list of (R, G, B) tuples."""
+    v   = np.clip(values / scale, -1.0, 1.0)
+    pos = np.clip( v, 0.0, 1.0)
     neg = np.clip(-v, 0.0, 1.0)
-    r = 255 - (255 * neg).astype(np.int32)
-    g = 255 - (255 * (pos + neg)).astype(np.int32)
-    b = 255 - (255 * pos).astype(np.int32)
-    return np.stack([r, g, b], axis=1)
+    rgb = np.empty((len(values), 3), dtype=np.int16)
+    rgb[:, 0] = 255 - (255 * neg).astype(np.int16)
+    rgb[:, 1] = 255 - (255 * (pos + neg)).astype(np.int16)
+    rgb[:, 2] = 255 - (255 * pos).astype(np.int16)
+    return rgb.tolist()
 
 
 def draw_sphere(screen, vx, vy, points_z, cell_regions, colors):
@@ -184,9 +186,11 @@ def main() -> None:
 
     vertices_local = sv.vertices.copy()
 
-    # Auto-rotation state
+    # Rotation state
     angle_y = 0.0
     angle_x = 0.35
+    dragging = False
+    last_mouse = (0, 0)
 
     clock = pygame.time.Clock()
     tick = 0
@@ -203,6 +207,19 @@ def main() -> None:
                 elif event.key == pygame.K_r:
                     u[:] = 0.0
                     random_raindrop()
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                dragging = True
+                last_mouse = event.pos
+            elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                dragging = False
+            elif event.type == pygame.MOUSEMOTION and dragging:
+                dx = event.pos[0] - last_mouse[0]
+                dy = event.pos[1] - last_mouse[1]
+                angle_y += dx * MOUSE_SENS
+                angle_x += dy * MOUSE_SENS
+                # clamp vertical tilt so the poles don't flip past the camera
+                angle_x = max(-math.pi / 2, min(math.pi / 2, angle_x))
+                last_mouse = event.pos
 
         # ---- random raindrop sources -----------------------------------------
         if rng.random() < RAIN_RATE:
@@ -221,7 +238,8 @@ def main() -> None:
             tick += 1
 
         # ---- rotation & projection ------------------------------------------
-        angle_y += AUTO_ROTATE
+        if not dragging:
+            angle_y += AUTO_ROTATE
         cy, sy = math.cos(angle_y), math.sin(angle_y)
         cx, sx = math.cos(angle_x), math.sin(angle_x)
         Ry = np.array([[ cy, 0.0,  sy],
@@ -245,7 +263,6 @@ def main() -> None:
         u_curr  = u[1]
         max_abs = max(0.4, float(np.abs(u_curr).max()))
         colors  = colormap(u_curr, max_abs)
-        colors  = [tuple(int(c) for c in row) for row in colors]
 
         # ---- draw ------------------------------------------------------------
         screen.fill((18, 18, 28))
@@ -254,7 +271,7 @@ def main() -> None:
         info = (f"Spherical Voronoi  |  N = {N} cells, {n_edges} edges  |  "
                 f"t = {tick * dt:5.2f} s  |  FPS = {clock.get_fps():4.1f}")
         screen.blit(font.render(info, True, (230, 230, 230)), (8, 6))
-        screen.blit(font.render("SPACE: drop    R: reset    ESC: quit",
+        screen.blit(font.render("LMB drag: rotate   SPACE: drop   R: reset   ESC: quit",
                                 True, (170, 170, 180)),
                     (8, SCREEN_SIZE - 22))
 
